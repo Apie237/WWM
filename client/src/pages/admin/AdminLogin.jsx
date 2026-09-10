@@ -39,7 +39,7 @@ export default function AdminLogin() {
     <div className="flex min-h-screen items-center justify-center bg-wwm-navy px-4 py-12">
       <div className="w-full max-w-sm border border-wwm-neutral-300 bg-wwm-white p-8">
         <div className="mb-8 flex justify-center">
-          <Logo size={72} />
+          <Logo size={80} showText={false} />
         </div>
         <h1 className="mb-1 text-center text-lg font-bold uppercase tracking-wide text-wwm-navy">
           Administrator Sign In

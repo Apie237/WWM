@@ -58,7 +58,7 @@ export default function MobileNavigation({ open, onClose, continents }) {
       <div className="absolute inset-0 bg-wwm-neutral-900/60" onClick={onClose} aria-hidden="true" />
       <div ref={panelRef} className="absolute inset-y-0 left-0 flex w-[85%] max-w-sm flex-col overflow-y-auto bg-wwm-navy">
         <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
-          <Logo />
+          <Logo size={44} textClassName="text-wwm-white" />
           <button
             ref={closeButtonRef}
             type="button"

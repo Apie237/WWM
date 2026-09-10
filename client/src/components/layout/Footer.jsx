@@ -24,7 +24,7 @@ export default function Footer() {
     <footer className="bg-wwm-navy text-wwm-neutral-100">
       <Container className="grid grid-cols-1 gap-10 py-14 sm:grid-cols-2 lg:grid-cols-5 lg:gap-8">
         <div className="lg:col-span-1">
-          <Logo />
+          <Logo textClassName="text-wwm-white" />
           <p className="mt-4 text-sm leading-relaxed text-wwm-neutral-100">
             Reaching nations. Transforming lives. Fulfilling the Great Commission.
           </p>

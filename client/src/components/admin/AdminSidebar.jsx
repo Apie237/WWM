@@ -41,7 +41,7 @@ export default function AdminSidebar({ open, onClose }) {
       <aside className="hidden w-60 shrink-0 flex-col bg-wwm-navy sm:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-white/10 px-4">
           <Link to="/admin/dashboard" aria-label="WWM admin — dashboard">
-            <Logo size={34} />
+            <Logo size={40} showText={false} />
           </Link>
           <span className="text-xs font-bold uppercase tracking-[0.18em] text-wwm-gold-light">Admin</span>
         </div>
@@ -56,7 +56,7 @@ export default function AdminSidebar({ open, onClose }) {
           <div className="absolute inset-y-0 left-0 flex w-[80%] max-w-xs flex-col bg-wwm-navy">
             <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
               <div className="flex items-center gap-2.5">
-                <Logo size={34} />
+                <Logo size={40} showText={false} />
                 <span className="text-xs font-bold uppercase tracking-[0.18em] text-wwm-gold-light">Admin</span>
               </div>
               <button

@@ -165,7 +165,7 @@ export default function Header() {
       {/* Utility bar */}
       <div className="border-b border-wwm-neutral-300 bg-wwm-white">
         <Container className="flex h-16 items-center justify-between">
-          <Link to="/" aria-label="World Wide Missions — home">
+          <Link to="/" aria-label="World Wide Missions International — home">
             <Logo />
           </Link>
           <div className="hidden items-center gap-4 sm:flex">
