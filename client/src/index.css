@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+/*
+ * WWM design tokens.
+ * Deep navy = primary brand color, gold = accent, cream = heritage/history
+ * surfaces, neutral = backgrounds/text. Established in Phase 1, extended in
+ * Phase 4 per docs/DESIGN_SPEC.md §15.
+ */
+@theme {
+  --color-wwm-navy: #0a1f3c;
+  --color-wwm-navy-light: #123566;
+  --color-wwm-white: #ffffff;
+  --color-wwm-gold: #c9a24b;
+  --color-wwm-gold-light: #e0c27a;
+  --color-wwm-bg: #f7f7f5;
+  --color-wwm-cream: #f3ead9;
+  --color-wwm-neutral-100: #f5f5f4;
+  --color-wwm-neutral-300: #d6d3d1;
+  --color-wwm-neutral-600: #57534e;
+  --color-wwm-neutral-900: #1c1917;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-wwm-bg);
+  color: var(--color-wwm-neutral-900);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Visible keyboard focus indicator, required sitewide per
+   docs/DESIGN_SPEC.md §16. Mouse/touch interaction never triggers it. */
+:focus-visible {
+  outline: 2px solid var(--color-wwm-gold);
+  outline-offset: 2px;
+}
+
+/* Prevents any single element from forcing horizontal page scroll. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}

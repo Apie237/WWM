@@ -1,0 +1,79 @@
+import { Link, NavLink } from 'react-router-dom'
+import { LayoutDashboard, X } from 'lucide-react'
+import Logo from '../ui/Logo.jsx'
+
+// Phase 6 foundation: only the dashboard shell exists. Phase 7's CMS modules
+// (Countries, Organizations, People, Ministries, etc.) will add their own
+// entries here — none are stubbed in early, per the instruction not to build
+// CMS CRUD (or its navigation) ahead of that phase.
+const NAV_ITEMS = [{ label: 'Dashboard', to: '/admin/dashboard', icon: LayoutDashboard }]
+
+function NavList({ onNavigate }) {
+  return (
+    <ul className="flex-1 space-y-1 px-2 py-4">
+      {NAV_ITEMS.map(({ label, to, icon: Icon }) => (
+        <li key={to}>
+          <NavLink
+            to={to}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              `flex min-h-[44px] items-center gap-3 px-3 py-2.5 text-sm font-semibold uppercase tracking-wide transition-colors focus-visible:outline-2 focus-visible:outline-wwm-gold focus-visible:outline-offset-[-2px] ${
+                isActive ? 'bg-wwm-navy-light text-wwm-gold-light' : 'text-wwm-white hover:bg-wwm-navy-light'
+              }`
+            }
+          >
+            <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+            {label}
+          </NavLink>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+// Desktop: a permanently visible left column (docs/DESIGN_SPEC.md admin
+// note, §14). Mobile: an off-canvas panel, mirroring the public site's
+// MobileNavigation pattern (focus starts inside, Escape/backdrop-click to
+// close) so admin and public nav behave consistently for keyboard/AT users.
+export default function AdminSidebar({ open, onClose }) {
+  return (
+    <>
+      <aside className="hidden w-60 shrink-0 flex-col bg-wwm-navy sm:flex">
+        <div className="flex h-16 items-center gap-2.5 border-b border-white/10 px-4">
+          <Link to="/admin/dashboard" aria-label="WWM admin — dashboard">
+            <Logo size={34} />
+          </Link>
+          <span className="text-xs font-bold uppercase tracking-[0.18em] text-wwm-gold-light">Admin</span>
+        </div>
+        <nav aria-label="Admin">
+          <NavList />
+        </nav>
+      </aside>
+
+      {open && (
+        <div className="fixed inset-0 z-50 sm:hidden" role="dialog" aria-modal="true" aria-label="Admin navigation">
+          <div className="absolute inset-0 bg-wwm-neutral-900/60" onClick={onClose} aria-hidden="true" />
+          <div className="absolute inset-y-0 left-0 flex w-[80%] max-w-xs flex-col bg-wwm-navy">
+            <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
+              <div className="flex items-center gap-2.5">
+                <Logo size={34} />
+                <span className="text-xs font-bold uppercase tracking-[0.18em] text-wwm-gold-light">Admin</span>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close menu"
+                className="inline-flex h-11 w-11 items-center justify-center text-wwm-white"
+              >
+                <X className="h-6 w-6" aria-hidden="true" />
+              </button>
+            </div>
+            <nav aria-label="Admin">
+              <NavList onNavigate={onClose} />
+            </nav>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
