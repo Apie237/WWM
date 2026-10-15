@@ -23,6 +23,7 @@
 import mongoose from 'mongoose';
 import { connectDB } from '../config/db.js';
 import { Continent } from '../models/index.js';
+import { slugify } from '../utils/slugify.js';
 
 const CONTINENTS = [
   { name: 'Africa', order: 1 },
@@ -37,7 +38,12 @@ async function seedContinents() {
   for (const continent of CONTINENTS) {
     await Continent.findOneAndUpdate(
       { name: continent.name },
-      { $set: continent },
+      {
+        $set: {
+          ...continent,
+          slug: slugify(continent.name),
+        },
+      },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
   }
