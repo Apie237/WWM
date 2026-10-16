@@ -39,3 +39,38 @@ export function titleCaseFromSlug(slug) {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 }
+
+// Display formatting for real ISO date values coming from News/Event records.
+export function formatDate(value) {
+  if (!value) return ''
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
+export function formatDateRange(start, end) {
+  const s = formatDate(start)
+  const e = formatDate(end)
+  if (!s) return ''
+  return e && e !== s ? `${s} – ${e}` : s
+}
+
+// Splits plain-text article/event bodies into paragraphs. Bodies are rendered
+// as text nodes only (never as HTML), so stored content cannot inject markup.
+export function toParagraphs(text) {
+  return String(text || '')
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+}
+
+export const RESOURCE_TYPE_LABELS = {
+  sermon: 'Sermon',
+  devotional: 'Devotional',
+  tract: 'Tract',
+  publication: 'Publication',
+  document: 'Document',
+  audio: 'Audio',
+  video: 'Video',
+  other: 'Other',
+}

@@ -27,4 +27,7 @@ export const env = {
   clientOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
   jwtSecret: resolveJwtSecret(),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1d',
+  // Max public prayer-request / contact submissions per IP per hour (Phase 8).
+  // Optional; defaults to 5. Raised only by the automated tests.
+  publicSubmissionLimit: Number(process.env.PUBLIC_SUBMISSION_LIMIT) || 5,
 };

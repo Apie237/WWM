@@ -9,6 +9,11 @@ import countriesRouter from './routes/countries.js';
 import organizationsRouter from './routes/organizations.js';
 import peopleRouter from './routes/people.js';
 import ministriesRouter from './routes/ministries.js';
+import newsRouter from './routes/news.js';
+import eventsRouter from './routes/events.js';
+import resourcesRouter from './routes/resources.js';
+import prayerRequestsRouter from './routes/prayerRequests.js';
+import contactRouter from './routes/contact.js';
 import authRouter from './routes/auth.js';
 import adminRouter from './routes/admin.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
@@ -31,6 +36,11 @@ export function createApp() {
   app.use('/api/organizations', organizationsRouter);
   app.use('/api/people', peopleRouter);
   app.use('/api/ministries', ministriesRouter);
+  app.use('/api/news', newsRouter);
+  app.use('/api/events', eventsRouter);
+  app.use('/api/resources', resourcesRouter);
+  app.use('/api/prayer-requests', prayerRequestsRouter);
+  app.use('/api/contact', contactRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/admin', adminRouter);
 

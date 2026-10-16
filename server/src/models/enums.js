@@ -48,3 +48,16 @@ export const MINISTRY_TYPES = [
 // introduced. COUNTRY_ADMIN accounts are restricted to their assigned
 // Country (see models/User.js); the other three are not country-scoped.
 export const ADMIN_ROLES = ['SUPER_ADMIN', 'INTERNATIONAL_ADMIN', 'COUNTRY_ADMIN', 'CONTENT_EDITOR'];
+
+// Phase 8 content-module enums (docs/PROJECT_SPEC.md §6 "Content models").
+export const CONTENT_STATUSES = ['draft', 'published'];
+
+// Classification labels for the resource library (docs/DESIGN_SPEC.md §11:
+// "document/audio/video" plus the sermons/devotionals/tracts named on the
+// Resources tile). Not organizational facts.
+export const RESOURCE_TYPES = ['sermon', 'devotional', 'tract', 'publication', 'document', 'audio', 'video', 'other'];
+
+// Prayer requests are never public until a moderator approves them.
+export const PRAYER_REQUEST_STATUSES = ['pending', 'approved', 'rejected'];
+
+export const CONTACT_MESSAGE_STATUSES = ['new', 'read', 'archived'];

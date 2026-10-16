@@ -9,3 +9,8 @@ export { default as Ministry } from './Ministry.js';
 export { default as CountryAdministration } from './CountryAdministration.js';
 export { default as AffiliatePastorsBoard } from './AffiliatePastorsBoard.js';
 export { default as User } from './User.js';
+export { default as News } from './News.js';
+export { default as Event } from './Event.js';
+export { default as Resource } from './Resource.js';
+export { default as PrayerRequest } from './PrayerRequest.js';
+export { default as ContactMessage } from './ContactMessage.js';

@@ -444,4 +444,11 @@ The full Cloudinary system is explicitly out of scope until Phase 9 — do not i
 - **Phase 9 — Media / Cloudinary** — Cloudinary integration for logos, photographs, documents, and other media.
 - **Phase 10 — Production Polish** — Responsive QA, accessibility, SEO, performance, error/loading/empty states, security review, deployment, backups.
 
+### Phase 8 content-module decisions (added 2026-10-16)
+
+- `News`, `Event`, `Resource`, `PrayerRequest`, `ContactMessage` are implemented as listed in §6. News/Events have an optional `country`; publishing is controlled by `status` (`draft`/`published`).
+- Public prayer requests and contact messages are user-submitted: prayer requests are moderated (`pending` → `approved`/`rejected`, public only when approved); contact messages are never public. Both public POST endpoints are rate-limited and honeypot-protected.
+- Admin access: News/Events follow the Ministry policy (`COUNTRY_ADMIN` scoped to own country); Resources are international (`COUNTRY_ADMIN` read-only); Prayer Requests are moderated by `SUPER_ADMIN`/`INTERNATIONAL_ADMIN`/`COUNTRY_ADMIN` (own country); Contact Messages are `SUPER_ADMIN`/`INTERNATIONAL_ADMIN` only.
+- "Give" is deferred until the owner supplies a payment provider and verified giving details.
+
 Do not implement any phase beyond the one currently in progress without explicit instruction. See `docs/PROGRESS.md` for live completion status.

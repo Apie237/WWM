@@ -2,7 +2,12 @@ import SectionBand from '../components/ui/SectionBand.jsx'
 import SectionHeader from '../components/ui/SectionHeader.jsx'
 import InPageNav from '../components/ui/InPageNav.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
-import { Newspaper, DollarSign, FileText, MapPinned, Megaphone } from 'lucide-react'
+import NewsEventsSection from '../components/resources/NewsEventsSection.jsx'
+import ResourceLibrarySection from '../components/resources/ResourceLibrarySection.jsx'
+import PrayerRequestsSection from '../components/resources/PrayerRequestsSection.jsx'
+import ContactSection from '../components/resources/ContactSection.jsx'
+import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
+import { DollarSign } from 'lucide-react'
 
 const SECTIONS = [
   { id: 'news-events', label: 'News & Events' },
@@ -12,11 +17,12 @@ const SECTIONS = [
   { id: 'contact', label: 'Contact' },
 ]
 
-// Shell for News & Events, Resources, Prayer Requests, Give, and Contact —
-// all of these belong to Phase 8 ("Remaining Public Modules") once their
-// content models exist. Phase 4 provides the reusable page structure and
-// navigation entry point only (Phase 4 instructions, "Public Routes").
+// Phase 8: News & Events, the resource library, Prayer Requests, and Contact
+// are live (database-driven via the public API). Give remains an honest
+// placeholder: no payment provider or verified giving details have been
+// supplied, so nothing is invented here.
 export default function Resources() {
+  useDocumentTitle('Resources | World Wide Missions')
   return (
     <>
       <SectionBand tone="navy" className="py-12">
@@ -32,52 +38,36 @@ export default function Resources() {
 
       <SectionBand tone="white" id="news-events" className="scroll-mt-40">
         <SectionHeader title="News & Events" />
-        <div className="mt-6">
-          <EmptyState
-            icon={Newspaper}
-            title="No news or events yet"
-            description="Mission updates and upcoming events will be published here."
-          />
+        <div className="mt-8">
+          <NewsEventsSection />
         </div>
       </SectionBand>
 
       <SectionBand tone="light" id="resources" className="scroll-mt-40">
         <SectionHeader title="Resources" />
         <div className="mt-6">
-          <EmptyState
-            icon={FileText}
-            title="No resources published yet"
-            description="Sermons, devotionals, tracts, and downloads will appear here."
-          />
+          <ResourceLibrarySection />
         </div>
       </SectionBand>
 
       <SectionBand tone="white" id="prayer-requests" className="scroll-mt-40">
         <SectionHeader title="Prayer Requests" />
-        <div className="mt-6">
-          <EmptyState
-            icon={Megaphone}
-            title="Prayer request submissions coming soon"
-            description="A form to submit and view public prayer requests will be added here."
-          />
+        <div className="mt-8">
+          <PrayerRequestsSection />
         </div>
       </SectionBand>
 
       <SectionBand tone="cream" id="give" className="scroll-mt-40">
         <SectionHeader title="Give" description="Support the mission securely." />
         <div className="mt-6">
-          <EmptyState icon={DollarSign} title="Online giving coming soon" description="A secure giving option will be added here." />
+          <EmptyState icon={DollarSign} title="Online giving is not available yet" description="Official giving options will be published here once the organization confirms them." />
         </div>
       </SectionBand>
 
       <SectionBand tone="white" id="contact" className="scroll-mt-40">
         <SectionHeader title="Contact" />
-        <div className="mt-6">
-          <EmptyState
-            icon={MapPinned}
-            title="Contact details coming soon"
-            description="Verified contact information will be published here once confirmed."
-          />
+        <div className="mt-8">
+          <ContactSection />
         </div>
       </SectionBand>
     </>

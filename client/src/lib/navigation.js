@@ -82,6 +82,7 @@ export const FOOTER_GROUPS = [
       { label: "Mission Locations", to: "/mission-locations" },
       { label: "Church Institutions", to: "/church-institutions" },
       { label: "Non-Church Institutions", to: "/non-church-institutions" },
+      { label: "Contact", to: "/resources#contact" },
     ],
   },
   {

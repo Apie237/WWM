@@ -8,6 +8,11 @@ import organizationsAdminRouter from './admin/organizations.js';
 import ministriesAdminRouter from './admin/ministries.js';
 import countryAdministrationsAdminRouter from './admin/countryAdministrations.js';
 import affiliatePastorsBoardsAdminRouter from './admin/affiliatePastorsBoards.js';
+import newsAdminRouter from './admin/news.js';
+import eventsAdminRouter from './admin/events.js';
+import resourcesAdminRouter from './admin/resources.js';
+import prayerRequestsAdminRouter from './admin/prayerRequests.js';
+import contactMessagesAdminRouter from './admin/contactMessages.js';
 
 const router = Router();
 
@@ -26,5 +31,12 @@ router.use('/organizations', organizationsAdminRouter);
 router.use('/ministries', ministriesAdminRouter);
 router.use('/country-administrations', countryAdministrationsAdminRouter);
 router.use('/affiliate-pastors-boards', affiliatePastorsBoardsAdminRouter);
+
+// Phase 8 content modules.
+router.use('/news', newsAdminRouter);
+router.use('/events', eventsAdminRouter);
+router.use('/resources', resourcesAdminRouter);
+router.use('/prayer-requests', prayerRequestsAdminRouter);
+router.use('/contact-messages', contactMessagesAdminRouter);
 
 export default router;

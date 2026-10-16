@@ -141,7 +141,7 @@ export default function CountryPage() {
       <SectionBand tone="white" id="news-events" className="scroll-mt-40">
         <SectionHeader title="News & Events" />
         <div className="mt-8">
-          <CountryNewsEventsSection />
+          <CountryNewsEventsSection countrySlug={country.slug} />
         </div>
       </SectionBand>
 

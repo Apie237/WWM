@@ -8,6 +8,11 @@ import {
   HeartHandshake,
   Landmark,
   UsersRound,
+  Newspaper,
+  CalendarDays,
+  FileText,
+  Megaphone,
+  Mail,
   X,
 } from 'lucide-react'
 import Logo from '../ui/Logo.jsx'
@@ -25,6 +30,11 @@ const NAV_ITEMS = [
   { label: 'Ministries', to: '/admin/ministries', icon: HeartHandshake },
   { label: 'Country Administration', to: '/admin/country-administrations', icon: Landmark },
   { label: 'Affiliate Pastors Board', to: '/admin/affiliate-pastors-boards', icon: UsersRound },
+  { label: 'News', to: '/admin/news', icon: Newspaper },
+  { label: 'Events', to: '/admin/events', icon: CalendarDays },
+  { label: 'Resources', to: '/admin/resources', icon: FileText },
+  { label: 'Prayer Requests', to: '/admin/prayer-requests', icon: Megaphone },
+  { label: 'Contact Messages', to: '/admin/contact-messages', icon: Mail },
 ]
 
 function NavList({ onNavigate }) {

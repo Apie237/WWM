@@ -9,6 +9,8 @@ import CountryPage from './pages/CountryPage.jsx'
 import ChurchInstitutions from './pages/ChurchInstitutions.jsx'
 import NonChurchInstitutions from './pages/NonChurchInstitutions.jsx'
 import Resources from './pages/Resources.jsx'
+import NewsEventsList from './pages/NewsEventsList.jsx'
+import NewsEventsDetail from './pages/NewsEventsDetail.jsx'
 import NotFound from './pages/NotFound.jsx'
 import ProtectedRoute from './components/admin/ProtectedRoute.jsx'
 import AdminLayout from './components/admin/AdminLayout.jsx'
@@ -25,6 +27,14 @@ import OrganizationsList from './pages/admin/organizations/OrganizationsList.jsx
 import OrganizationForm from './pages/admin/organizations/OrganizationForm.jsx'
 import MinistriesList from './pages/admin/ministries/MinistriesList.jsx'
 import MinistryForm from './pages/admin/ministries/MinistryForm.jsx'
+import NewsList from './pages/admin/news/NewsList.jsx'
+import NewsForm from './pages/admin/news/NewsForm.jsx'
+import EventsList from './pages/admin/events/EventsList.jsx'
+import EventForm from './pages/admin/events/EventForm.jsx'
+import ResourcesList from './pages/admin/resources/ResourcesList.jsx'
+import ResourceForm from './pages/admin/resources/ResourceForm.jsx'
+import PrayerRequestsAdmin from './pages/admin/inbox/PrayerRequestsAdmin.jsx'
+import ContactMessagesAdmin from './pages/admin/inbox/ContactMessagesAdmin.jsx'
 import { CountryAdministrationModule } from './pages/admin/leadershipStructure/countryAdministrationModule.js'
 import { AffiliatePastorsBoardModule } from './pages/admin/leadershipStructure/affiliatePastorsBoardModule.js'
 
@@ -41,6 +51,10 @@ export default function App() {
         <Route path="/church-institutions" element={<ChurchInstitutions />} />
         <Route path="/non-church-institutions" element={<NonChurchInstitutions />} />
         <Route path="/resources" element={<Resources />} />
+        <Route path="/news" element={<NewsEventsList kind="news" />} />
+        <Route path="/news/:slug" element={<NewsEventsDetail kind="news" />} />
+        <Route path="/events" element={<NewsEventsList kind="events" />} />
+        <Route path="/events/:slug" element={<NewsEventsDetail kind="events" />} />
         <Route path="*" element={<NotFound />} />
       </Route>
 
@@ -73,6 +87,19 @@ export default function App() {
           <Route path="ministries" element={<MinistriesList />} />
           <Route path="ministries/new" element={<MinistryForm />} />
           <Route path="ministries/:id" element={<MinistryForm />} />
+
+          {/* Phase 8 content modules. */}
+          <Route path="news" element={<NewsList />} />
+          <Route path="news/new" element={<NewsForm />} />
+          <Route path="news/:id" element={<NewsForm />} />
+          <Route path="events" element={<EventsList />} />
+          <Route path="events/new" element={<EventForm />} />
+          <Route path="events/:id" element={<EventForm />} />
+          <Route path="resources" element={<ResourcesList />} />
+          <Route path="resources/new" element={<ResourceForm />} />
+          <Route path="resources/:id" element={<ResourceForm />} />
+          <Route path="prayer-requests" element={<PrayerRequestsAdmin />} />
+          <Route path="contact-messages" element={<ContactMessagesAdmin />} />
 
           <Route path="country-administrations" element={<CountryAdministrationModule.List />} />
           <Route path="country-administrations/new" element={<CountryAdministrationModule.Form />} />

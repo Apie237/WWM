@@ -58,3 +58,41 @@ export function getPeople(params = {}) {
 export function getMinistries(params = {}) {
   return unwrap(api.get('/ministries', { params }))
 }
+
+// ---- Phase 8 public modules ----
+export function getNews(params = {}) {
+  return unwrap(api.get('/news', { params }))
+}
+
+export function getNewsItem(slug) {
+  return unwrap(api.get(`/news/${slug}`))
+}
+
+export function getEvents(params = {}) {
+  return unwrap(api.get('/events', { params }))
+}
+
+export function getEvent(slug) {
+  return unwrap(api.get(`/events/${slug}`))
+}
+
+export function getResources(params = {}) {
+  return unwrap(api.get('/resources', { params }))
+}
+
+export function getPrayerRequests(params = {}) {
+  return unwrap(api.get('/prayer-requests', { params }))
+}
+
+export function submitPrayerRequest(payload) {
+  return unwrap(api.post('/prayer-requests', payload))
+}
+
+export function submitContactMessage(payload) {
+  return unwrap(api.post('/contact', payload))
+}
+
+// The server's { error } message for a failed request, or a fallback.
+export function apiErrorMessage(error, fallback = 'Something went wrong. Please try again.') {
+  return error?.response?.data?.error || fallback
+}

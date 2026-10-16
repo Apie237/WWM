@@ -31,6 +31,12 @@ export const countriesApi = crud('countries')
 export const peopleApi = crud('people')
 export const organizationsApi = crud('organizations')
 export const ministriesApi = crud('ministries')
+// Phase 8 content modules.
+export const newsApi = crud('news')
+export const eventsApi = crud('events')
+export const resourcesApi = crud('resources')
+export const prayerRequestsApi = crud('prayer-requests')
+export const contactMessagesApi = crud('contact-messages')
 export const countryAdministrationsApi = {
   ...crud('country-administrations'),
   addPosition: (id, payload) => unwrap(authApi.post(`/admin/country-administrations/${id}/positions`, payload)),
