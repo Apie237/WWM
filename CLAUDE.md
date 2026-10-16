@@ -271,9 +271,9 @@ Phase 4 — Public Website + Design System: COMPLETED.
 
 Phase 5 — Mission Locations: COMPLETED.
 
-Phase 6 — Authentication + Admin Foundation: NEXT APPROVED PHASE.
+Phase 6 — Authentication + Admin Foundation: COMPLETED.
 
-Phase 7 — CMS CRUD: NOT STARTED.
+Phase 7 — CMS CRUD: COMPLETED.
 
 Phase 8 — Remaining Public Modules: NOT STARTED.
 
@@ -283,7 +283,11 @@ Phase 10 — Production Polish: NOT STARTED.
 
 **Phase 5 status note**: implemented the full database-driven Mission Locations hierarchy — `/mission-locations/:continent` (`ContinentPage`) and `/mission-locations/:continent/:country` (the one reusable `CountryPage` template, per the Country Architecture rule below). Country pages use the six-group section navigation (Overview, Leadership, Churches & Institutions, Missionaries & Ministries, News & Events, Contact), a new data-driven `LeadershipChart` shared by Country Administration and the Affiliate Pastors Board, and reuse of Phase 4's `DirectorySearch`/`OrganizationCard`/`PersonCard`. No backend changes were required — the existing Phase 3 public API already supported every query Phase 5 needed. See `docs/PROGRESS.md` for the full completion record (routes, components, verification, deferred items).
 
-Do not begin Phase 6 automatically. Phase 6 must be explicitly instructed before work starts.
+**Phase 6 status note**: JWT authentication (httpOnly cookie, Bearer header also accepted), bcrypt password hashing, the `User` model, and the four approved admin roles (`SUPER_ADMIN`, `INTERNATIONAL_ADMIN`, `COUNTRY_ADMIN`, `CONTENT_EDITOR`) are implemented, along with `requireAuth`/`requireRole`/`requireCountryAccess` middleware, `/api/auth/*` and `/api/admin/dashboard` routes, an admin seed script, and a full admin frontend foundation. No CMS CRUD existed yet as of Phase 6 — the admin dashboard was a verified shell only. See `docs/PROGRESS.md` for the full completion record.
+
+**Phase 7 status note**: implemented full list/view/create/edit/delete/search/filter/pagination CRUD for all eight approved modules (Continents, Countries, People, Country Administration, Affiliate Pastors Boards, Churches, Institutions, Ministries — the last two both via the single `Organization` model, per the Country Architecture rule). Backend: seven new admin route/controller/service module groups under `server/src/{routes,controllers,services}/admin/`, following Routes → Controllers → Services → Models throughout, plus a shared `utils/adminHelpers.js`; every write whitelists fields and validates references, every delete with an incoming reference is blocked with a 409 rather than cascading, and `COUNTRY_ADMIN` scoping is enforced server-side from the verified JWT only. Frontend: a new `services/adminApi.js` client, a shared `components/admin/cms/` primitive set, and 8 modules' worth of list+form admin pages (Country Administration and Affiliate Pastors Board share one parameterized page-factory, since the two backend models are structurally identical). No Phase 2 models were changed. See `docs/PROGRESS.md` for the full completion record (authorization matrix, verification performed, and the known limitation that no reachable MongoDB was available in that session for DB-backed verification).
+
+Do not begin Phase 8 automatically. Phase 8 must be explicitly instructed before work starts.
 
 ---
 

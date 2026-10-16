@@ -1,12 +1,31 @@
 import { Link, NavLink } from 'react-router-dom'
-import { LayoutDashboard, X } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Globe2,
+  MapPin,
+  Users,
+  Building2,
+  HeartHandshake,
+  Landmark,
+  UsersRound,
+  X,
+} from 'lucide-react'
 import Logo from '../ui/Logo.jsx'
 
-// Phase 6 foundation: only the dashboard shell exists. Phase 7's CMS modules
-// (Countries, Organizations, People, Ministries, etc.) will add their own
-// entries here — none are stubbed in early, per the instruction not to build
-// CMS CRUD (or its navigation) ahead of that phase.
-const NAV_ITEMS = [{ label: 'Dashboard', to: '/admin/dashboard', icon: LayoutDashboard }]
+// Phase 7 CMS modules. Every authenticated role can at least read all of
+// these (server-side authorization narrows what each role can write —
+// docs/CLAUDE.md Phase 7 §6/§9), so the nav itself does not hide entries by
+// role; it is not the security boundary.
+const NAV_ITEMS = [
+  { label: 'Dashboard', to: '/admin/dashboard', icon: LayoutDashboard },
+  { label: 'Continents', to: '/admin/continents', icon: Globe2 },
+  { label: 'Countries', to: '/admin/countries', icon: MapPin },
+  { label: 'People', to: '/admin/people', icon: Users },
+  { label: 'Churches & Institutions', to: '/admin/organizations', icon: Building2 },
+  { label: 'Ministries', to: '/admin/ministries', icon: HeartHandshake },
+  { label: 'Country Administration', to: '/admin/country-administrations', icon: Landmark },
+  { label: 'Affiliate Pastors Board', to: '/admin/affiliate-pastors-boards', icon: UsersRound },
+]
 
 function NavList({ onNavigate }) {
   return (
