@@ -1,6 +1,6 @@
 import { Person, Country, Organization, Ministry, CountryAdministration, AffiliatePastorsBoard } from '../../models/index.js';
 import { ApiError } from '../../utils/apiError.js';
-import { pickAllowed } from '../../utils/adminHelpers.js';
+import { pickAllowed, requireValidObjectIdListField } from '../../utils/adminHelpers.js';
 import { PERSON_ROLE_TYPES } from '../../models/enums.js';
 
 export const PERSON_WRITABLE_FIELDS = [
@@ -16,26 +16,38 @@ export const PERSON_WRITABLE_FIELDS = [
   'notes',
 ];
 
-// Validates each role entry's shape/enum and that any referenced country or
-// organization actually exists — a role pointing at a deleted/invalid
-// reference would silently break every page that renders this person.
-// Returns the validated roles array unchanged (not reshaped), so callers can
-// assign it straight onto the document.
+// Validates each role entry's shape/enum, that any referenced country or
+// organization actually exists, and — the Phase 7 security-review addition
+// — that a role naming *both* a country and an organization doesn't quietly
+// create a cross-country relationship (e.g. "role in Kenya, organization in
+// Nigeria"). A role with an organization but no country is left unchecked
+// against the organization's country: it declares no country of its own to
+// compare against, so there is nothing to be inconsistent with — the same
+// "internationally-scoped reference" exception documented in
+// adminHelpers.js. Combined with the controller's existing restriction that
+// a COUNTRY_ADMIN's roles must all name their own country, this is what
+// actually stops a COUNTRY_ADMIN from using a locally-scoped role to attach
+// an organization belonging to another country. Returns the validated
+// roles array unchanged (not reshaped), so callers can assign it straight
+// onto the document.
 export async function validateRoles(roles) {
   if (roles === undefined) return undefined;
   if (!Array.isArray(roles)) {
     throw new ApiError(400, '"roles" must be an array.');
   }
 
+  requireValidObjectIdListField(roles.map((r) => r.country), 'roles[].country');
+  requireValidObjectIdListField(roles.map((r) => r.organization), 'roles[].organization');
+
   const countryIds = [...new Set(roles.map((r) => r.country).filter(Boolean).map(String))];
   const organizationIds = [...new Set(roles.map((r) => r.organization).filter(Boolean).map(String))];
 
   const [countries, organizations] = await Promise.all([
     countryIds.length ? Country.find({ _id: { $in: countryIds } }).select('_id').lean() : [],
-    organizationIds.length ? Organization.find({ _id: { $in: organizationIds } }).select('_id').lean() : [],
+    organizationIds.length ? Organization.find({ _id: { $in: organizationIds } }).select('_id country').lean() : [],
   ]);
   const validCountryIds = new Set(countries.map((c) => String(c._id)));
-  const validOrganizationIds = new Set(organizations.map((o) => String(o._id)));
+  const organizationById = new Map(organizations.map((o) => [String(o._id), o]));
 
   for (const role of roles) {
     if (!PERSON_ROLE_TYPES.includes(role.roleType)) {
@@ -44,8 +56,17 @@ export async function validateRoles(roles) {
     if (role.country && !validCountryIds.has(String(role.country))) {
       throw new ApiError(400, `Referenced country does not exist: ${role.country}`);
     }
-    if (role.organization && !validOrganizationIds.has(String(role.organization))) {
+    if (role.organization && !organizationById.has(String(role.organization))) {
       throw new ApiError(400, `Referenced organization does not exist: ${role.organization}`);
+    }
+    if (role.country && role.organization) {
+      const org = organizationById.get(String(role.organization));
+      if (String(org.country) !== String(role.country)) {
+        throw new ApiError(
+          400,
+          `This role's organization belongs to a different country than the role's own country (${role.country}).`
+        );
+      }
     }
   }
 

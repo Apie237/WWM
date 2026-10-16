@@ -1,5 +1,6 @@
 import { ApiError } from './apiError.js';
 import { isValidObjectId } from './queryHelpers.js';
+import { Person, Organization } from '../models/index.js';
 
 // Shared, small helpers used by the Phase 7 admin/CMS controllers and
 // services. Deliberately kept to plain functions (not a generic CRUD
@@ -39,6 +40,21 @@ export function requireObjectIdField(value, fieldName) {
     throw new ApiError(400, `"${fieldName}" must be a valid id.`);
   }
   return value;
+}
+
+// Validates every id in an array-of-references field (e.g. each leader's
+// `person`, each role's `country`/`organization`) is a well-formed ObjectId
+// *before* any of them are handed to a Mongoose `$in` query — a single
+// malformed id in a `$in` array throws an uncaught CastError (a 500), not
+// the project's normal 400. Falsy entries (nothing selected yet) are
+// skipped; callers that require a value do that check separately.
+export function requireValidObjectIdListField(ids, fieldLabel) {
+  for (const id of ids) {
+    if (id === undefined || id === null || id === '') continue;
+    if (!isValidObjectId(id)) {
+      throw new ApiError(400, `"${fieldLabel}" contains an invalid id: ${id}`);
+    }
+  }
 }
 
 // Translates a Mongoose duplicate-key error (E11000, raised by any of the
@@ -122,4 +138,68 @@ export function canManageCountry(req, countryId) {
   if (role === 'SUPER_ADMIN' || role === 'INTERNATIONAL_ADMIN') return true;
   if (role !== 'COUNTRY_ADMIN') return false;
   return String(countryId) === String(country?.id);
+}
+
+// --- Relationship-level (cross-country) integrity ---------------------
+//
+// Record-level authorization (assertCountryWritable/scopeFilterToCountry
+// above) only confines which Country/Organization/Ministry/etc *document* an
+// admin may touch. It says nothing about whether the *references that
+// document points at* (a leader, a responsible person, a board member)
+// actually belong to that same country — a COUNTRY_ADMIN confined to their
+// own country's Organization could still, before this check existed, pick
+// any Person id in the whole database as a "leader," including one with no
+// connection whatsoever to that country. These two helpers close that gap
+// everywhere a person or organization is attached to a specific country
+// (organization leaders, ministry responsible-people, country-administration
+// positions, affiliate-pastors-board members, and a person's own roles).
+//
+// A person "belongs" to a country when they hold at least one role whose
+// `country` matches it. A role with no country at all (`role.country` unset)
+// is treated as internationally scoped and is accepted for *any* country —
+// this is the deliberate, documented resolution of "preserve legitimate
+// multi-country people and roles for authorized international
+// administrators" / "do not prohibit legitimate relationships merely to
+// simplify authorization": an internationally-scoped person (a founder, an
+// international director, etc.) can legitimately be attached anywhere,
+// while a person who only ever holds country-specific roles cannot be
+// attached to a country they hold no role in. This applies uniformly to
+// every caller (not only COUNTRY_ADMIN) because it is a data-integrity rule,
+// not a permission check — combined with the existing record-level checks,
+// it is what actually stops a COUNTRY_ADMIN from reaching across a country
+// boundary through a reference instead of the record itself.
+export async function assertPersonBelongsToCountry(personId, countryId, { fieldLabel = 'person' } = {}) {
+  if (!personId || !countryId) return;
+  requireObjectIdField(personId, fieldLabel);
+  const person = await Person.findById(personId).select('roles.country').lean();
+  if (!person) throw new ApiError(400, `Referenced person does not exist: ${personId}`);
+
+  const roles = person.roles || [];
+  const belongs = roles.some((r) => {
+    if (!r.country) return true; // internationally-scoped role — allowed anywhere
+    return String(r.country) === String(countryId);
+  });
+  if (!belongs) {
+    throw new ApiError(
+      400,
+      `This person has no role in the required country and cannot be assigned to it here. Add a role for them in that country first, or use a person with an international (country-less) role.`
+    );
+  }
+}
+
+// Same relationship check for an Organization reference: the organization's
+// own `country` must match the country the reference is being attached
+// under (e.g. a Ministry's `organization` must belong to the Ministry's own
+// `country`). Organization.country is required by its schema, so there is
+// no "internationally scoped organization" equivalent to a country-less
+// Person role.
+export async function assertOrganizationBelongsToCountry(organizationId, countryId, { fieldLabel = 'organization' } = {}) {
+  if (!organizationId || !countryId) return;
+  requireObjectIdField(organizationId, fieldLabel);
+  const org = await Organization.findById(organizationId).select('country').lean();
+  if (!org) throw new ApiError(400, `Referenced organization does not exist: ${organizationId}`);
+
+  if (String(org.country) !== String(countryId)) {
+    throw new ApiError(400, 'The referenced organization belongs to a different country than this record.');
+  }
 }

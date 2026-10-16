@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { CountryAdministration, Country, Person } from '../../models/index.js';
 import { ApiError } from '../../utils/apiError.js';
-import { pickAllowed, requireObjectIdField } from '../../utils/adminHelpers.js';
+import { pickAllowed, requireObjectIdField, assertPersonBelongsToCountry } from '../../utils/adminHelpers.js';
 
 // Document-level metadata an admin may edit directly. `positions` itself is
 // never bulk-replaced through this field set — see addPositionAdmin/
@@ -19,11 +19,18 @@ async function assertCountryExists(countryId) {
   if (!exists) throw new ApiError(400, `Referenced country does not exist: ${countryId}`);
 }
 
-async function assertPersonExistsIfSet(personId) {
+// Existence *and* (the Phase 7 security-review addition) relationship
+// check: a position's `person` must actually belong to this administration
+// document's own country (a role there, or an internationally-scoped role
+// — adminHelpers.js's assertPersonBelongsToCountry), so a COUNTRY_ADMIN
+// cannot fill their own country's leadership structure with a person whose
+// only connection to the database is an ObjectId that happens to exist.
+async function assertPersonExistsIfSet(personId, countryId) {
   if (personId === undefined || personId === null) return;
   requireObjectIdField(personId, 'person');
   const exists = await Person.exists({ _id: personId });
   if (!exists) throw new ApiError(400, `Referenced person does not exist: ${personId}`);
+  await assertPersonBelongsToCountry(personId, countryId, { fieldLabel: 'person' });
 }
 
 // `parentEntry` must be null, or the _id of another entry already present in
@@ -125,7 +132,7 @@ export async function addPositionAdmin(id, body) {
   if (!doc) throw new ApiError(404, `Country administration record not found: ${id}`);
   if (!body.title) throw new ApiError(400, '"title" is required.');
 
-  await assertPersonExistsIfSet(body.person);
+  await assertPersonExistsIfSet(body.person, doc.country);
   const existingIds = new Set(doc.positions.map((p) => String(p._id)));
   assertValidParentEntry(body.parentEntry, existingIds, null);
 
@@ -142,7 +149,7 @@ export async function updatePositionAdmin(id, entryId, body) {
   const entry = doc.positions.id(entryId);
   if (!entry) throw new ApiError(404, `Position not found: ${entryId}`);
 
-  if (body.person !== undefined) await assertPersonExistsIfSet(body.person);
+  if (body.person !== undefined) await assertPersonExistsIfSet(body.person, doc.country);
   if (body.parentEntry !== undefined) {
     const existingIds = new Set(doc.positions.map((p) => String(p._id)));
     assertValidParentEntry(body.parentEntry, existingIds, entry._id);

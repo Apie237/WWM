@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { AffiliatePastorsBoard, Country, Person } from '../../models/index.js';
 import { ApiError } from '../../utils/apiError.js';
-import { pickAllowed, requireObjectIdField } from '../../utils/adminHelpers.js';
+import { pickAllowed, requireObjectIdField, assertPersonBelongsToCountry } from '../../utils/adminHelpers.js';
 
 // Mirrors countryAdministrationAdminService.js exactly, with `members` in
 // place of `positions` — see that file's comments for the reasoning behind
@@ -21,11 +21,18 @@ async function assertCountryExists(countryId) {
   if (!exists) throw new ApiError(400, `Referenced country does not exist: ${countryId}`);
 }
 
-async function assertPersonExistsIfSet(personId) {
+// Existence *and* (the Phase 7 security-review addition) relationship
+// check: a member's `person` must actually belong to this board document's
+// own country (a role there, or an internationally-scoped role —
+// adminHelpers.js's assertPersonBelongsToCountry), so a COUNTRY_ADMIN
+// cannot populate their own country's board with a person whose only
+// connection to the database is an ObjectId that happens to exist.
+async function assertPersonExistsIfSet(personId, countryId) {
   if (personId === undefined || personId === null) return;
   requireObjectIdField(personId, 'person');
   const exists = await Person.exists({ _id: personId });
   if (!exists) throw new ApiError(400, `Referenced person does not exist: ${personId}`);
+  await assertPersonBelongsToCountry(personId, countryId, { fieldLabel: 'person' });
 }
 
 function assertValidParentEntry(parentEntry, existingEntryIds, ownEntryId) {
@@ -108,7 +115,7 @@ export async function addMemberAdmin(id, body) {
   if (!doc) throw new ApiError(404, `Affiliate pastors board record not found: ${id}`);
   if (!body.title) throw new ApiError(400, '"title" is required.');
 
-  await assertPersonExistsIfSet(body.person);
+  await assertPersonExistsIfSet(body.person, doc.country);
   const existingIds = new Set(doc.members.map((m) => String(m._id)));
   assertValidParentEntry(body.parentEntry, existingIds, null);
 
@@ -125,7 +132,7 @@ export async function updateMemberAdmin(id, entryId, body) {
   const entry = doc.members.id(entryId);
   if (!entry) throw new ApiError(404, `Member not found: ${entryId}`);
 
-  if (body.person !== undefined) await assertPersonExistsIfSet(body.person);
+  if (body.person !== undefined) await assertPersonExistsIfSet(body.person, doc.country);
   if (body.parentEntry !== undefined) {
     const existingIds = new Set(doc.members.map((m) => String(m._id)));
     assertValidParentEntry(body.parentEntry, existingIds, entry._id);
