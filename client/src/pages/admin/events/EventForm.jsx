@@ -6,9 +6,10 @@ import { eventsApi, countriesApi, errorMessage } from '../../../services/adminAp
 import FormShell from '../../../components/admin/cms/FormShell.jsx'
 import FormField, { inputClasses } from '../../../components/admin/cms/FormField.jsx'
 import ReferenceSelect from '../../../components/admin/cms/ReferenceSelect.jsx'
+import ImageUpload from '../../../components/admin/cms/ImageUpload.jsx'
 import LoadingState from '../../../components/ui/LoadingState.jsx'
 
-const EMPTY = { title: '', slug: '', description: '', country: null, location: '', startDate: '', endDate: '', imageUrl: '', status: 'draft', notes: '' }
+const EMPTY = { title: '', slug: '', description: '', country: null, location: '', startDate: '', endDate: '', imageUrl: '', imagePublicId: '', status: 'draft', notes: '' }
 
 // <input type="date"> works in YYYY-MM-DD; the API stores a full date.
 const toDateInput = (value) => (value ? new Date(value).toISOString().slice(0, 10) : '')
@@ -35,7 +36,7 @@ export default function EventForm() {
           title: data.title || '', slug: data.slug || '', description: data.description || '',
           country: data.country?._id || data.country || null, location: data.location || '',
           startDate: toDateInput(data.startDate), endDate: toDateInput(data.endDate),
-          imageUrl: data.imageUrl || '', status: data.status || 'draft', notes: data.notes || '',
+          imageUrl: data.imageUrl || '', imagePublicId: data.imagePublicId || '', status: data.status || 'draft', notes: data.notes || '',
         })
       })
       .catch((err) => !cancelled && setError(errorMessage(err, 'Could not load this event.')))
@@ -53,7 +54,7 @@ export default function EventForm() {
       title: form.title, slug: form.slug || undefined, description: form.description, location: form.location,
       country: isCountryAdmin ? admin?.country?.id : form.country || null,
       startDate: form.startDate, endDate: form.endDate || null,
-      imageUrl: form.imageUrl, status: form.status, notes: form.notes,
+      imageUrl: form.imageUrl, imagePublicId: form.imagePublicId || null, status: form.status, notes: form.notes,
     }
     try {
       if (isEdit) await eventsApi.update(id, payload)
@@ -95,8 +96,8 @@ export default function EventForm() {
       <FormField label="Description" htmlFor="description" hint="Plain text. Separate paragraphs with a blank line.">
         <textarea id="description" rows={8} maxLength={10000} className={inputClasses} value={form.description} onChange={(e) => update('description', e.target.value)} />
       </FormField>
-      <FormField label="Image URL" htmlFor="imageUrl" hint="Optional http(s) link. Uploads arrive with the Cloudinary phase.">
-        <input id="imageUrl" type="url" className={inputClasses} value={form.imageUrl} onChange={(e) => update('imageUrl', e.target.value)} />
+      <FormField label="Image" htmlFor="imageUrl">
+        <ImageUpload id="imageUrl" kind="events" value={{ url: form.imageUrl, publicId: form.imagePublicId }} onChange={(v) => setForm((p) => ({ ...p, imageUrl: v.url, imagePublicId: v.publicId }))} />
       </FormField>
       <FormField label="Status" htmlFor="status" hint="Only published events are visible on the public site.">
         <select id="status" className={inputClasses} value={form.status} onChange={(e) => update('status', e.target.value)}>

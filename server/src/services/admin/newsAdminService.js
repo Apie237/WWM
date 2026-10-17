@@ -5,7 +5,7 @@ import { cleanString, cleanHttpUrl, cleanDate } from '../../utils/inputValidatio
 import { CONTENT_STATUSES } from '../../models/enums.js';
 import { makeContentAdminService } from './contentAdminService.js';
 
-export const NEWS_WRITABLE_FIELDS = ['title', 'slug', 'summary', 'body', 'country', 'imageUrl', 'status', 'publishedAt', 'notes'];
+export const NEWS_WRITABLE_FIELDS = ['title', 'slug', 'summary', 'body', 'country', 'imageUrl', 'imagePublicId', 'status', 'publishedAt', 'notes'];
 
 export async function assertCountryExists(countryId) {
   requireObjectIdField(countryId, 'country');
@@ -37,4 +37,5 @@ export const newsAdminService = makeContentAdminService({
   writableFields: NEWS_WRITABLE_FIELDS,
   populate: [{ path: 'country', select: 'name slug' }],
   validate: validateNews,
+  media: { urlField: 'imageUrl', idField: 'imagePublicId', kind: 'news' },
 });

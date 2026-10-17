@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom'
 import ImagePlaceholder from '../ui/ImagePlaceholder.jsx'
 import { formatDate } from '../../lib/format.js'
+import { imageSrc, imageSrcSet } from '../../lib/images.js'
 
 // News list/grid item (docs/DESIGN_SPEC.md §11): image, title, date, excerpt, link.
 export default function NewsCard({ item }) {
   return (
     <article className="flex flex-col border border-wwm-neutral-300 bg-wwm-white">
       {item.imageUrl ? (
-        <img src={item.imageUrl} alt="" className="aspect-[4/3] w-full object-cover" loading="lazy" />
+        <img src={imageSrc(item.imageUrl, 640)} srcSet={imageSrcSet(item.imageUrl, [320, 640, 960])} sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" alt="" className="aspect-[4/3] w-full object-cover" loading="lazy" />
       ) : (
         <ImagePlaceholder label="Photo coming soon" />
       )}

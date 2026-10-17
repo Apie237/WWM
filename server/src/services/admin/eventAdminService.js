@@ -5,7 +5,7 @@ import { CONTENT_STATUSES } from '../../models/enums.js';
 import { makeContentAdminService } from './contentAdminService.js';
 import { assertCountryExists } from './newsAdminService.js';
 
-export const EVENT_WRITABLE_FIELDS = ['title', 'slug', 'description', 'country', 'location', 'startDate', 'endDate', 'imageUrl', 'status', 'notes'];
+export const EVENT_WRITABLE_FIELDS = ['title', 'slug', 'description', 'country', 'location', 'startDate', 'endDate', 'imageUrl', 'imagePublicId', 'status', 'notes'];
 
 export async function validateEvent(data, { existing }) {
   const out = { ...data };
@@ -40,4 +40,5 @@ export const eventAdminService = makeContentAdminService({
   writableFields: EVENT_WRITABLE_FIELDS,
   populate: [{ path: 'country', select: 'name slug' }],
   validate: validateEvent,
+  media: { urlField: 'imageUrl', idField: 'imagePublicId', kind: 'events' },
 });

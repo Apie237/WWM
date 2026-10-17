@@ -1,6 +1,7 @@
 import { User } from 'lucide-react'
 import { buildHierarchyTree } from '../../lib/hierarchy.js'
 import EmptyState from '../ui/EmptyState.jsx'
+import { imageSrc } from '../../lib/images.js'
 
 // Generic, data-driven org-chart renderer shared by CountryAdministration
 // and AffiliatePastorsBoard (docs/DESIGN_SPEC.md §6/§7) — no position titles
@@ -57,7 +58,8 @@ function NodeBox({ entry }) {
     <div className="flex min-w-[200px] items-center gap-3 border border-wwm-neutral-300 bg-wwm-white px-3 py-2 sm:min-w-[150px] sm:max-w-[170px] sm:flex-col sm:items-center sm:gap-1 sm:border-wwm-navy sm:bg-wwm-navy sm:px-4 sm:py-3 sm:text-center">
       {entry.person?.photoUrl ? (
         <img
-          src={entry.person.photoUrl}
+          src={imageSrc(entry.person.photoUrl, 96)}
+          loading="lazy"
           alt=""
           className="h-9 w-9 shrink-0 rounded-full object-cover sm:h-10 sm:w-10"
         />

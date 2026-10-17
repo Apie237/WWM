@@ -1,5 +1,6 @@
 import { User } from 'lucide-react'
 import { formatLifeDates } from '../../lib/format.js'
+import { imageSrc } from '../../lib/images.js'
 
 // Founder/pioneer variant of PersonCard — archival-style portrait framing,
 // life dates, short bio excerpt (docs/DESIGN_SPEC.md §8, §14). Rendered
@@ -11,7 +12,7 @@ export default function PioneerCard({ person }) {
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
       <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden border border-wwm-neutral-300 bg-wwm-white text-wwm-neutral-600 sm:h-32 sm:w-32">
         {person.photoUrl ? (
-          <img src={person.photoUrl} alt={person.displayName} className="h-full w-full object-cover grayscale" />
+          <img src={imageSrc(person.photoUrl, 400)} alt={person.displayName} loading="lazy" className="h-full w-full object-cover grayscale" />
         ) : (
           <User className="h-12 w-12" aria-hidden="true" />
         )}

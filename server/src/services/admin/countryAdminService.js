@@ -1,9 +1,12 @@
 import { Country, Continent, Organization, Ministry, Person, CountryAdministration, AffiliatePastorsBoard } from '../../models/index.js';
 import { ApiError } from '../../utils/apiError.js';
 import { pickAllowed, requireObjectIdField } from '../../utils/adminHelpers.js';
+import { prepareImageField, releaseReplacedImage, releaseAssetIfUnreferenced } from '../mediaService.js';
+
+const FLAG = { urlField: 'flagImageUrl', idField: 'flagImagePublicId', kind: 'countries' };
 
 // Fields any admin allowed to write a Country at all may set.
-const CONTENT_FIELDS = ['overview', 'flagImageUrl', 'contact'];
+const CONTENT_FIELDS = ['overview', 'flagImageUrl', 'flagImagePublicId', 'contact'];
 // Structural/classification fields — reassigning a country's continent,
 // renaming it, or changing its active/ordering status is international-level
 // structure, not "this country's own content", so only SUPER_ADMIN/
@@ -45,7 +48,9 @@ export async function createCountryAdmin(body) {
   }
   await assertContinentExists(body.continent);
 
-  const country = new Country(pickAllowed(body, COUNTRY_WRITABLE_FIELDS));
+  const data = pickAllowed(body, COUNTRY_WRITABLE_FIELDS);
+  await prepareImageField(data, null, FLAG);
+  const country = new Country(data);
   await country.save();
   return country.toObject();
 }
@@ -58,8 +63,11 @@ export async function updateCountryAdmin(id, body, allowedFields) {
     await assertContinentExists(body.continent);
   }
 
-  country.set(pickAllowed(body, allowedFields));
+  const data = pickAllowed(body, allowedFields);
+  const change = await prepareImageField(data, country.toObject(), FLAG);
+  country.set(data);
   await country.save();
+  await releaseReplacedImage(change);
   return country.toObject();
 }
 
@@ -89,5 +97,7 @@ export async function deleteCountryAdmin(id) {
     throw new ApiError(409, `Cannot delete this country: it still has ${blockers.join(', ')}. Remove or reassign them first.`);
   }
 
+  const flagId = country.flagImagePublicId;
   await country.deleteOne();
+  if (flagId) await releaseAssetIfUnreferenced(flagId);
 }

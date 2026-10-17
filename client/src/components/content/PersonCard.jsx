@@ -1,5 +1,6 @@
 import { User } from 'lucide-react'
 import { formatEnumLabel } from '../../lib/format.js'
+import { imageSrc } from '../../lib/images.js'
 
 // Generic person display reused for leadership, pastors, missionaries
 // (docs/DESIGN_SPEC.md §14) — never a bespoke component per named
@@ -18,7 +19,7 @@ export default function PersonCard({ person, roleLabel, frame = 'circle' }) {
         }`}
       >
         {person.photoUrl ? (
-          <img src={person.photoUrl} alt={person.displayName} className="h-full w-full object-cover" />
+          <img src={imageSrc(person.photoUrl, 400)} alt={person.displayName} loading="lazy" className="h-full w-full object-cover" />
         ) : (
           <User className="h-10 w-10" aria-hidden="true" />
         )}

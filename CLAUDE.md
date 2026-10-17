@@ -210,9 +210,7 @@ The same principle applies to:
 
 ## Media
 
-Cloudinary is a future Phase 9 concern.
-
-Do not implement full Cloudinary integration before Phase 9 unless explicitly instructed.
+Cloudinary image uploads were implemented in Phase 9 (signed REST API, no SDK, no Media model; see docs/PHASE9_README.md). Documents/PDF uploads and any broader media library are not implemented and need explicit instruction.
 
 ---
 
@@ -277,7 +275,7 @@ Phase 7 — CMS CRUD: COMPLETED.
 
 Phase 8 — Remaining Public Modules: IMPLEMENTED EXCEPT "Give" (awaiting owner decision on a payment provider/verified giving details). See docs/PROGRESS.md.
 
-Phase 9 — Media / Cloudinary: NOT STARTED.
+Phase 9 — Media / Cloudinary: IMPLEMENTED for images on News, Events, People and Country flags (live Cloudinary not verified; see docs/PROGRESS.md).
 
 Phase 10 — Production Polish: NOT STARTED.
 

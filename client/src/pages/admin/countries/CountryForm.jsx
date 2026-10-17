@@ -6,6 +6,7 @@ import { countriesApi, continentsApi, errorMessage } from '../../../services/adm
 import FormShell from '../../../components/admin/cms/FormShell.jsx'
 import FormField, { inputClasses } from '../../../components/admin/cms/FormField.jsx'
 import ReferenceSelect from '../../../components/admin/cms/ReferenceSelect.jsx'
+import ImageUpload from '../../../components/admin/cms/ImageUpload.jsx'
 import LoadingState from '../../../components/ui/LoadingState.jsx'
 
 const EMPTY = {
@@ -15,6 +16,7 @@ const EMPTY = {
   continent: null,
   overview: '',
   flagImageUrl: '',
+  flagImagePublicId: '',
   isActive: true,
   order: 0,
   contact: { headquartersAddress: '', mailingAddress: '', phone: '', email: '' },
@@ -53,6 +55,7 @@ export default function CountryForm() {
           continent: data.continent?._id || data.continent || null,
           overview: data.overview || '',
           flagImageUrl: data.flagImageUrl || '',
+          flagImagePublicId: data.flagImagePublicId || '',
           isActive: data.isActive,
           order: data.order ?? 0,
           contact: {
@@ -84,7 +87,8 @@ export default function CountryForm() {
 
     const contentPayload = {
       overview: form.overview || undefined,
-      flagImageUrl: form.flagImageUrl || undefined,
+      flagImageUrl: form.flagImageUrl,
+      flagImagePublicId: form.flagImagePublicId || null,
       contact: form.contact,
     }
     const payload = contentOnly
@@ -141,8 +145,8 @@ export default function CountryForm() {
       <FormField label="Overview" htmlFor="overview">
         <textarea id="overview" rows={5} className={inputClasses} value={form.overview} onChange={(e) => update('overview', e.target.value)} />
       </FormField>
-      <FormField label="Flag image URL" htmlFor="flagImageUrl">
-        <input id="flagImageUrl" className={inputClasses} value={form.flagImageUrl} onChange={(e) => update('flagImageUrl', e.target.value)} />
+      <FormField label="Flag image" htmlFor="flagImageUrl">
+        <ImageUpload id="flagImageUrl" kind="countries" value={{ url: form.flagImageUrl, publicId: form.flagImagePublicId }} onChange={(v) => setForm((p) => ({ ...p, flagImageUrl: v.url, flagImagePublicId: v.publicId }))} />
       </FormField>
 
       <fieldset className="border border-wwm-neutral-300 p-4">

@@ -2,6 +2,9 @@ import { Person, Country, Organization, Ministry, CountryAdministration, Affilia
 import { ApiError } from '../../utils/apiError.js';
 import { pickAllowed, requireValidObjectIdListField } from '../../utils/adminHelpers.js';
 import { PERSON_ROLE_TYPES } from '../../models/enums.js';
+import { prepareImageField, releaseReplacedImage, releaseAssetIfUnreferenced } from '../mediaService.js';
+
+const PHOTO = { urlField: 'photoUrl', idField: 'photoPublicId', kind: 'people' };
 
 export const PERSON_WRITABLE_FIELDS = [
   'displayName',
@@ -9,6 +12,7 @@ export const PERSON_WRITABLE_FIELDS = [
   'slug',
   'biography',
   'photoUrl',
+  'photoPublicId',
   'lifeDates',
   'roles',
   'isActive',
@@ -104,6 +108,7 @@ export async function createPersonAdmin(body) {
   }
   const data = pickAllowed(body, PERSON_WRITABLE_FIELDS);
   data.roles = await validateRoles(data.roles);
+  await prepareImageField(data, null, PHOTO);
 
   const person = new Person(data);
   await person.save();
@@ -116,9 +121,11 @@ export async function updatePersonAdmin(id, body) {
 
   const data = pickAllowed(body, PERSON_WRITABLE_FIELDS);
   data.roles = await validateRoles(data.roles);
+  const change = await prepareImageField(data, person.toObject(), PHOTO);
 
   person.set(data);
   await person.save();
+  await releaseReplacedImage(change);
   return person.toObject();
 }
 
@@ -147,7 +154,9 @@ export async function deletePersonAdmin(id) {
     throw new ApiError(409, `Cannot delete this person: still ${blockers.join(', ')}. Remove those references first.`);
   }
 
+  const photoId = person.photoPublicId;
   await person.deleteOne();
+  if (photoId) await releaseAssetIfUnreferenced(photoId);
 }
 
 // `role.country` may be either a raw ObjectId (an unpopulated/just-submitted

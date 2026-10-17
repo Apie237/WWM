@@ -12,6 +12,9 @@ const newsSchema = new Schema(
     body: { type: String, trim: true, maxlength: 20000 },
     country: { type: Schema.Types.ObjectId, ref: 'Country' },
     imageUrl: { type: String, trim: true, maxlength: 500 },
+    // Cloudinary asset id when the image was uploaded through the CMS (Phase 9);
+    // unset for a legacy externally-hosted URL. Never accepted raw from clients — see mediaService.
+    imagePublicId: { type: String, trim: true, maxlength: 120 },
     status: { type: String, enum: CONTENT_STATUSES, default: 'draft' },
     publishedAt: { type: Date },
     notes: { type: String, trim: true, maxlength: 1000 },
@@ -26,5 +29,7 @@ newsSchema.pre('validate', function prepare() {
 
 newsSchema.index({ status: 1, publishedAt: -1 });
 newsSchema.index({ country: 1 });
+
+newsSchema.index({ imagePublicId: 1 }, { sparse: true });
 
 export default mongoose.models.News || mongoose.model('News', newsSchema);

@@ -47,6 +47,9 @@ const personSchema = new Schema(
     slug: { type: String, trim: true, lowercase: true, maxlength: 220 },
     biography: { type: String, trim: true, maxlength: 6000 },
     photoUrl: { type: String, trim: true, maxlength: 500 },
+    // Cloudinary asset id when the image was uploaded through the CMS (Phase 9);
+    // unset for a legacy externally-hosted URL. Never accepted raw from clients — see mediaService.
+    photoPublicId: { type: String, trim: true, maxlength: 120 },
     lifeDates: {
       born: looseDateSchema,
       died: looseDateSchema,
@@ -70,5 +73,7 @@ personSchema.index({ 'roles.roleType': 1 });
 personSchema.index({ 'roles.country': 1 });
 personSchema.index({ 'roles.organization': 1 });
 personSchema.index({ isActive: 1 });
+
+personSchema.index({ photoPublicId: 1 }, { sparse: true });
 
 export default mongoose.models.Person || mongoose.model('Person', personSchema);

@@ -9,6 +9,7 @@ import ImagePlaceholder from '../components/ui/ImagePlaceholder.jsx'
 import { getNewsItem, getEvent, isHttpStatus } from '../services/api.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 import { formatDate, formatDateRange, toParagraphs } from '../lib/format.js'
+import { imageSrc, imageSrcSet } from '../lib/images.js'
 
 // One detail template for /news/:slug and /events/:slug.
 export default function NewsEventsDetail({ kind }) {
@@ -60,7 +61,7 @@ export default function NewsEventsDetail({ kind }) {
       <SectionBand tone="white">
         <article className="mx-auto max-w-3xl">
           {item.imageUrl ? (
-            <img src={item.imageUrl} alt="" className="mb-8 w-full object-cover" />
+            <img src={imageSrc(item.imageUrl, 1200)} srcSet={imageSrcSet(item.imageUrl, [640, 960, 1200])} sizes="(min-width: 768px) 768px, 100vw" alt="" className="mb-8 w-full object-cover" />
           ) : (
             <ImagePlaceholder label="Photo coming soon" ratio="aspect-[16/7]" className="mb-8" />
           )}

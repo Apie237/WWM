@@ -6,9 +6,10 @@ import { newsApi, countriesApi, errorMessage } from '../../../services/adminApi.
 import FormShell from '../../../components/admin/cms/FormShell.jsx'
 import FormField, { inputClasses } from '../../../components/admin/cms/FormField.jsx'
 import ReferenceSelect from '../../../components/admin/cms/ReferenceSelect.jsx'
+import ImageUpload from '../../../components/admin/cms/ImageUpload.jsx'
 import LoadingState from '../../../components/ui/LoadingState.jsx'
 
-const EMPTY = { title: '', slug: '', summary: '', body: '', country: null, imageUrl: '', status: 'draft', notes: '' }
+const EMPTY = { title: '', slug: '', summary: '', body: '', country: null, imageUrl: '', imagePublicId: '', status: 'draft', notes: '' }
 
 export default function NewsForm() {
   const { id } = useParams()
@@ -30,7 +31,7 @@ export default function NewsForm() {
         if (cancelled) return
         setForm({
           title: data.title || '', slug: data.slug || '', summary: data.summary || '', body: data.body || '',
-          country: data.country?._id || data.country || null, imageUrl: data.imageUrl || '', status: data.status || 'draft', notes: data.notes || '',
+          country: data.country?._id || data.country || null, imageUrl: data.imageUrl || '', imagePublicId: data.imagePublicId || '', status: data.status || 'draft', notes: data.notes || '',
         })
       })
       .catch((err) => !cancelled && setError(errorMessage(err, 'Could not load this article.')))
@@ -48,7 +49,7 @@ export default function NewsForm() {
     const payload = {
       title: form.title, slug: form.slug || undefined, summary: form.summary, body: form.body,
       country: isCountryAdmin ? admin?.country?.id : form.country || null,
-      imageUrl: form.imageUrl, status: form.status, notes: form.notes,
+      imageUrl: form.imageUrl, imagePublicId: form.imagePublicId || null, status: form.status, notes: form.notes,
     }
     try {
       if (isEdit) await newsApi.update(id, payload)
@@ -82,8 +83,8 @@ export default function NewsForm() {
       <FormField label="Body" htmlFor="body" hint="Plain text. Separate paragraphs with a blank line.">
         <textarea id="body" rows={10} maxLength={20000} className={inputClasses} value={form.body} onChange={(e) => update('body', e.target.value)} />
       </FormField>
-      <FormField label="Image URL" htmlFor="imageUrl" hint="Optional http(s) link. Uploads arrive with the Cloudinary phase.">
-        <input id="imageUrl" type="url" className={inputClasses} value={form.imageUrl} onChange={(e) => update('imageUrl', e.target.value)} />
+      <FormField label="Image" htmlFor="imageUrl">
+        <ImageUpload id="imageUrl" kind="news" value={{ url: form.imageUrl, publicId: form.imagePublicId }} onChange={(v) => setForm((p) => ({ ...p, imageUrl: v.url, imagePublicId: v.publicId }))} />
       </FormField>
       <FormField label="Status" htmlFor="status" hint="Only published articles are visible on the public site.">
         <select id="status" className={inputClasses} value={form.status} onChange={(e) => update('status', e.target.value)}>

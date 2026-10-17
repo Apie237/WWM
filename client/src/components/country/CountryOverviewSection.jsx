@@ -1,6 +1,7 @@
 import { MapPin } from 'lucide-react'
 import ImagePlaceholder from '../ui/ImagePlaceholder.jsx'
 import EmptyState from '../ui/EmptyState.jsx'
+import { imageSrc } from '../../lib/images.js'
 
 // Overview group of the country section navigation (docs/DESIGN_SPEC.md §5):
 // country identity, flag, description, representative photo, and mission
@@ -15,7 +16,7 @@ export default function CountryOverviewSection({ country }) {
         <div className="flex items-center gap-3">
           {country.flagImageUrl ? (
             <img
-              src={country.flagImageUrl}
+              src={imageSrc(country.flagImageUrl, 120)}
               alt={`Flag of ${country.name}`}
               className="h-7 w-10 shrink-0 border border-wwm-neutral-300 object-cover"
             />

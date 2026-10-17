@@ -19,6 +19,9 @@ const countrySchema = new Schema(
     continent: { type: Schema.Types.ObjectId, ref: 'Continent', required: true },
     overview: { type: String, trim: true, maxlength: 5000 },
     flagImageUrl: { type: String, trim: true, maxlength: 500 },
+    // Cloudinary asset id when the image was uploaded through the CMS (Phase 9);
+    // unset for a legacy externally-hosted URL. Never accepted raw from clients — see mediaService.
+    flagImagePublicId: { type: String, trim: true, maxlength: 120 },
     contact: {
       headquartersAddress: { type: String, trim: true, maxlength: 500 },
       mailingAddress: { type: String, trim: true, maxlength: 500 },
@@ -38,5 +41,7 @@ countrySchema.pre('validate', function generateSlug() {
 });
 
 countrySchema.index({ continent: 1, isActive: 1 });
+
+countrySchema.index({ flagImagePublicId: 1 }, { sparse: true });
 
 export default mongoose.models.Country || mongoose.model('Country', countrySchema);

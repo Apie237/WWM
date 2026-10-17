@@ -29,5 +29,14 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1d',
   // Max public prayer-request / contact submissions per IP per hour (Phase 8).
   // Optional; defaults to 5. Raised only by the automated tests.
+  // Phase 9 — Cloudinary. All three secrets stay server-side; image uploads are
+  // disabled (clear 503) when any is missing, so local dev works without them.
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
+  },
+  // Max image upload size. Default 4 MB stays under Vercel's ~4.5 MB request-body limit.
+  mediaMaxUploadBytes: Math.round((Number(process.env.MEDIA_MAX_UPLOAD_MB) || 4) * 1024 * 1024),
   publicSubmissionLimit: Number(process.env.PUBLIC_SUBMISSION_LIMIT) || 5,
 };

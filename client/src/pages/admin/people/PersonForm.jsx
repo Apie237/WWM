@@ -7,6 +7,7 @@ import { peopleApi, countriesApi, organizationsApi, errorMessage } from '../../.
 import FormShell from '../../../components/admin/cms/FormShell.jsx'
 import FormField, { inputClasses } from '../../../components/admin/cms/FormField.jsx'
 import ReferenceSelect from '../../../components/admin/cms/ReferenceSelect.jsx'
+import ImageUpload from '../../../components/admin/cms/ImageUpload.jsx'
 import LoadingState from '../../../components/ui/LoadingState.jsx'
 
 // Mirrors server/src/models/enums.js PERSON_ROLE_TYPES — a fixed UI
@@ -40,6 +41,7 @@ const EMPTY = {
   slug: '',
   biography: '',
   photoUrl: '',
+  photoPublicId: '',
   bornYear: '',
   bornApprox: false,
   diedYear: '',
@@ -80,6 +82,7 @@ export default function PersonForm() {
           slug: data.slug || '',
           biography: data.biography || '',
           photoUrl: data.photoUrl || '',
+          photoPublicId: data.photoPublicId || '',
           bornYear: data.lifeDates?.born?.year ?? '',
           bornApprox: Boolean(data.lifeDates?.born?.approximate),
           diedYear: data.lifeDates?.died?.year ?? '',
@@ -140,7 +143,8 @@ export default function PersonForm() {
       name: { prefix: form.prefix || undefined, first: form.first || undefined, middle: form.middle || undefined, last: form.last || undefined, suffix: form.suffix || undefined },
       slug: form.slug || undefined,
       biography: form.biography || undefined,
-      photoUrl: form.photoUrl || undefined,
+      photoUrl: form.photoUrl,
+      photoPublicId: form.photoPublicId || null,
       lifeDates: {
         born: looseYear(form.bornYear, form.bornApprox),
         died: looseYear(form.diedYear, form.diedApprox),
@@ -193,8 +197,8 @@ export default function PersonForm() {
       <FormField label="Biography" htmlFor="biography">
         <textarea id="biography" rows={4} className={inputClasses} value={form.biography} onChange={(e) => update('biography', e.target.value)} />
       </FormField>
-      <FormField label="Photo URL" htmlFor="photoUrl">
-        <input id="photoUrl" className={inputClasses} value={form.photoUrl} onChange={(e) => update('photoUrl', e.target.value)} />
+      <FormField label="Photo" htmlFor="photoUrl">
+        <ImageUpload id="photoUrl" kind="people" value={{ url: form.photoUrl, publicId: form.photoPublicId }} onChange={(v) => setForm((p) => ({ ...p, photoUrl: v.url, photoPublicId: v.publicId }))} />
       </FormField>
 
       <fieldset className="border border-wwm-neutral-300 p-4">

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { MapPin } from 'lucide-react'
+import { imageSrc } from '../../lib/images.js'
 
 // Country tile within a continent's country list/grid (docs/DESIGN_SPEC.md
 // §14, §25) — driven entirely by Country API data, never a per-country
@@ -17,7 +18,8 @@ export default function CountryCard({ country }) {
     >
       {country.flagImageUrl ? (
         <img
-          src={country.flagImageUrl}
+          src={imageSrc(country.flagImageUrl, 64)}
+          loading="lazy"
           alt=""
           className="mt-0.5 h-5 w-7 shrink-0 border border-wwm-neutral-300 object-cover"
         />

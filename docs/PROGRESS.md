@@ -10,7 +10,7 @@ This file tracks development phase completion for the WWM project. Phases are ch
 - [x] Phase 6 — Authentication + Admin Foundation
 - [x] Phase 7 — CMS CRUD
 - [ ] Phase 8 — Remaining Public Modules *(all modules implemented except Give — see Phase 8 record; box stays unchecked until Give is resolved)*
-- [ ] Phase 9 — Media / Cloudinary
+- [x] Phase 9 — Media / Cloudinary *(image uploads for the four existing image fields; live Cloudinary not verified — see Phase 9 record)*
 - [ ] Phase 10 — Production Polish
 
 ## Phase 4 — Public Website + Design System (completed 2026-09-08)
@@ -163,3 +163,20 @@ These checks run for every caller (not only `COUNTRY_ADMIN`) because they are da
 **Not verified / limitations**: no MongoDB was reachable, so nothing was run against a real database (indexes, unique-slug 409s and the `publishedAt` hook under real saves are untested end-to-end). The new admin screens were compiled and linted but not exercised in a browser (they need an authenticated session). Behind a reverse proxy, Express `trust proxy` must be configured for the rate limiter to see real client IPs (no deployment config exists yet).
 
 **Not implemented / pending decisions**: **Give** — no payment provider or verified giving details exist in the specs, so the section stays an honest placeholder (copy updated). `HistoryEvent` (history timeline) is not in PROJECT_SPEC §17's Phase 8 list and was not built. Global search remains deferred. Document/Media models and file uploads remain Phase 9. No sample or demo content was seeded.
+
+
+## Phase 9 — Media Management & Cloudinary (implemented 2026-10-16)
+
+**Scope**: authorized admins can upload JPEG/PNG/WebP images to Cloudinary from the existing CMS forms for the four fields that already held an image URL: `News.imageUrl`, `Event.imageUrl`, `Person.photoUrl`, `Country.flagImageUrl`. Organization, Ministry and Resource have no image field, so none was added. Document/PDF uploads for Resources are deferred (they would need a document model).
+
+**Design**: no Cloudinary SDK and no new dependency — the server calls Cloudinary's signed REST API with built-in `fetch`/`FormData`/`crypto`. No `Media` model: each owning record stores a companion public-id field (`imagePublicId`, `photoPublicId`, `flagImagePublicId`) next to its URL. Upload is server-proxied (raw request body, default max 4 MB via `MEDIA_MAX_UPLOAD_MB`, to fit Vercel's body limit). Public IDs must match `wwm/<news|events|people|countries>/<32 hex>` and the kind must match the target module; the stored URL is rebuilt server-side from the ID.
+
+**Endpoints**: `GET /api/admin/media/config` (limits only), `POST /api/admin/media/upload/:kind` (auth + per-admin rate limit 60/h + role per kind). There is no delete-by-ID endpoint.
+
+**Safety rules**: magic-byte check (must agree with declared type); 503 when Cloudinary is not configured (before the body is read); generic 502 on upstream failure with no upstream detail or secret returned or logged; an asset referenced by another record cannot be attached (409); Cloudinary deletion only happens after the DB write succeeds and only if no record still references the asset, and it is best-effort; country scope is enforced by the owning module's existing ownership checks; pre-Phase-9 legacy URLs keep working.
+
+**Frontend**: `ImageUpload` admin component (preview, uploading %, client-side type/size checks, replace, remove, errors; falls back to a plain link input when uploads are not configured) used in the News, Event, Person and Country forms. Public pages request width-limited renditions via `lib/images.js` (`srcset` on news images).
+
+**Verification (actual)**: `npm test` (server) — 96 tests, 96 pass (56 prior + 40 new in `phase9Media.test.js`, Cloudinary mocked at the fetch layer; includes Cloudinary's published signature test vector). Client `npm run build` passes; `npx oxlint` shows no errors in the new or changed code (remaining warnings are the previously accepted set-state-in-effect category).
+
+**Not verified / limitations**: the live Cloudinary integration was NOT tested (no credentials or network) — only the mocked API. No MongoDB was reachable, so nothing ran against a real database. The admin upload control was compiled and linted but not exercised in a browser against a real session. Uploaded-but-never-attached assets stay orphaned (no sweeper). No live existence check when attaching an ID. No alt-text field exists on the models. Behind a proxy Express `trust proxy` is needed for IP-based limits on the Phase 8 public forms.

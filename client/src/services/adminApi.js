@@ -67,3 +67,18 @@ export function isHttpStatus(error, status) {
 export function errorMessage(error, fallback = 'Something went wrong. Please try again.') {
   return error?.response?.data?.error || fallback
 }
+
+// Phase 9 media. The browser never sees Cloudinary credentials: the file goes
+// to our API as the raw request body, the server validates and signs the
+// upload, and we get back { publicId, url } to store on the record.
+export const mediaApi = {
+  config: () => unwrap(authApi.get('/admin/media/config')),
+  upload: (kind, file, onProgress) =>
+    unwrap(
+      authApi.post(`/admin/media/upload/${kind}`, file, {
+        headers: { 'Content-Type': file.type },
+        timeout: 60000,
+        onUploadProgress: (e) => onProgress?.(e.total ? Math.round((e.loaded / e.total) * 100) : null),
+      }),
+    ),
+}

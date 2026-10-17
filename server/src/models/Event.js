@@ -13,6 +13,9 @@ const eventSchema = new Schema(
     startDate: { type: Date, required: true },
     endDate: { type: Date },
     imageUrl: { type: String, trim: true, maxlength: 500 },
+    // Cloudinary asset id when the image was uploaded through the CMS (Phase 9);
+    // unset for a legacy externally-hosted URL. Never accepted raw from clients — see mediaService.
+    imagePublicId: { type: String, trim: true, maxlength: 120 },
     status: { type: String, enum: CONTENT_STATUSES, default: 'draft' },
     notes: { type: String, trim: true, maxlength: 1000 },
   },
@@ -25,5 +28,7 @@ eventSchema.pre('validate', function prepare() {
 
 eventSchema.index({ status: 1, startDate: 1 });
 eventSchema.index({ country: 1 });
+
+eventSchema.index({ imagePublicId: 1 }, { sparse: true });
 
 export default mongoose.models.Event || mongoose.model('Event', eventSchema);

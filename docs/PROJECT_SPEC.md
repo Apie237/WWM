@@ -411,7 +411,7 @@ Cloudinary will eventually handle:
 - Event images
 - Documents where appropriate
 
-The full Cloudinary system is explicitly out of scope until Phase 9 — do not implement it during scaffolding or earlier phases.
+**Phase 9 implementation decisions**: Cloudinary is used through its signed REST API (no SDK). Images (JPEG/PNG/WebP only, default max 4 MB) are uploaded via `POST /api/admin/media/upload/:kind` and attached to the four existing image fields; each owning record stores the Cloudinary public ID in a companion field (`imagePublicId`, `photoPublicId`, `flagImagePublicId`). No separate `Media` model. Public IDs are server-generated under `wwm/<kind>/`, a stored asset is deleted only when no record references it, and credentials come only from `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`. Documents, logos for organizations and other media remain future work.
 
 ---
 
