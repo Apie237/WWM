@@ -11,7 +11,7 @@ This file tracks development phase completion for the WWM project. Phases are ch
 - [x] Phase 7 — CMS CRUD
 - [ ] Phase 8 — Remaining Public Modules *(all modules implemented except Give — see Phase 8 record; box stays unchecked until Give is resolved)*
 - [x] Phase 9 — Media / Cloudinary *(image uploads for the four existing image fields; live Cloudinary not verified — see Phase 9 record)*
-- [ ] Phase 10 — Production Polish
+- [ ] Phase 10 — Production Polish *(code-level hardening implemented 2026-10-17; box stays unchecked until the live deployment checks in docs/PHASE10_README.md pass)*
 
 ## Phase 4 — Public Website + Design System (completed 2026-09-08)
 
@@ -180,3 +180,14 @@ These checks run for every caller (not only `COUNTRY_ADMIN`) because they are da
 **Verification (actual)**: `npm test` (server) — 96 tests, 96 pass (56 prior + 40 new in `phase9Media.test.js`, Cloudinary mocked at the fetch layer; includes Cloudinary's published signature test vector). Client `npm run build` passes; `npx oxlint` shows no errors in the new or changed code (remaining warnings are the previously accepted set-state-in-effect category).
 
 **Not verified / limitations**: the live Cloudinary integration was NOT tested (no credentials or network) — only the mocked API. No MongoDB was reachable, so nothing ran against a real database. The admin upload control was compiled and linted but not exercised in a browser against a real session. Uploaded-but-never-attached assets stay orphaned (no sweeper). No live existence check when attaching an ID. No alt-text field exists on the models. Behind a proxy Express `trust proxy` is needed for IP-based limits on the Phase 8 public forms.
+
+
+## Phase 10 — Production Polish, Security & Deployment Readiness (implemented 2026-10-17; live verification pending)
+
+Full detail, audit and deployment steps: `docs/PHASE10_README.md`.
+
+**Audit result**: Phase 9 confirmed present on `main`. No Critical findings. Three High defects found and fixed: no `trust proxy` (rate limits would key on the Vercel proxy and could lock out all admins), internal error text returned on 500s, and query-operator/array values reaching Mongo filters. Medium/Low items fixed: DB timeouts and connection race, graceful shutdown and background reconnect, login timing/ordering, Origin check on state-changing admin/auth requests, production env validation, CORS allowlist, `no-store` on admin/auth responses, JWT algorithm pinning, readiness endpoint; client session-expiry handling, request timeouts, error boundary, lazy-loaded admin bundle, skip links, `robots.txt`/admin noindex, security headers for the client host.
+
+**Verification (actual)**: server `npm test` — 132 tests, 132 pass (96 prior + 36 new in `phase10Hardening.test.js` and `phase10TrustProxy.test.js`; the new tests fail against the pre-Phase-10 code). Client `npm run build` passes (main bundle 482 kB → 389 kB; admin code now a separate 97 kB lazy chunk). `npx oxlint`: no errors; only the previously accepted `set-state-in-effect` warnings. `npm audit --omit=dev`: 0 vulnerabilities in both packages. Headless-Chromium smoke test of the production build against a mock API: 23/23 checks (public pages, skip link, no `/auth/me` call from public pages, no horizontal overflow at 390/768 px on five pages, admin login redirect, deep link, noindex, session-expiry redirect with notice).
+
+**Not verified**: live MongoDB, Cloudinary, Vercel, HTTPS/cookie behaviour across the real domains, the error boundary under a real render crash, and the admin forms in a browser against a real API. Rate limiters remain in-memory (per serverless instance). Logout does not revoke an already-issued JWT (valid up to its expiry).

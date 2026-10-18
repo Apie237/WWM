@@ -14,21 +14,42 @@ import eventsRouter from './routes/events.js';
 import resourcesRouter from './routes/resources.js';
 import prayerRequestsRouter from './routes/prayerRequests.js';
 import contactRouter from './routes/contact.js';
+import historyRouter from './routes/history.js';
 import authRouter from './routes/auth.js';
 import adminRouter from './routes/admin.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
+import { rejectNonStringQuery, requireTrustedOrigin, noStore } from './middleware/security.js';
 
 export function createApp() {
   const app = express();
+
+  // Real client IP behind a reverse proxy (needed by the rate limiters).
+  app.set('trust proxy', env.trustProxy);
+  // No nested-object query syntax: `?a[$ne]=x` stays a harmless literal key.
+  app.set('query parser', 'simple');
 
   app.use(helmet());
   // `credentials: true` is required for the browser to send/accept the
   // httpOnly admin auth cookie across origins (Phase 6 §6/§18: client and
   // server are separate deployments). This has no effect on the public,
   // unauthenticated routes below, which never read cookies.
-  app.use(cors({ origin: env.clientOrigin, credentials: true }));
-  app.use(express.json());
+  app.use(
+    cors({
+      // Explicit allowlist only. Requests without an Origin header (curl,
+      // server-to-server) are not CORS requests and pass through untouched.
+      origin(origin, callback) {
+        callback(null, !origin || env.clientOrigins.includes(origin) ? origin || true : false);
+      },
+      credentials: true,
+    })
+  );
+  app.use(express.json({ limit: '100kb' }));
   app.use(cookieParser());
+
+  app.use('/api', rejectNonStringQuery);
+  app.use('/api/auth', noStore, requireTrustedOrigin);
+  app.use('/api/admin', noStore, requireTrustedOrigin);
+  app.use('/api/history', historyRouter);
 
   app.use('/api', healthRouter);
   app.use('/api/continents', continentsRouter);

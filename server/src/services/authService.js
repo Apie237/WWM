@@ -5,6 +5,8 @@ import { ApiError } from '../utils/apiError.js';
 import { env } from '../config/env.js';
 
 const SALT_ROUNDS = 12;
+// Valid bcrypt hash of a random value, used only to equalise login timing.
+const DUMMY_HASH = bcrypt.hashSync('timing-equalisation-placeholder', SALT_ROUNDS);
 
 export async function hashPassword(plainPassword) {
   return bcrypt.hash(plainPassword, SALT_ROUNDS);
@@ -39,12 +41,12 @@ export function signAdminToken(user) {
       country: user.country ? user.country.toString() : null,
     },
     env.jwtSecret,
-    { expiresIn: env.jwtExpiresIn }
+    { expiresIn: env.jwtExpiresIn, algorithm: 'HS256' }
   );
 }
 
 export function verifyAdminToken(token) {
-  return jwt.verify(token, env.jwtSecret);
+  return jwt.verify(token, env.jwtSecret, { algorithms: ['HS256'] });
 }
 
 // Deliberately returns the same "Invalid email or password." message for a
@@ -57,16 +59,16 @@ export function verifyAdminToken(token) {
 // they can't sign in.
 export async function login({ email, password }) {
   const user = await User.findOne({ email }).select('+passwordHash');
-  if (!user) {
+  // Always run one bcrypt comparison, even for an unknown email, so response
+  // time does not reveal which emails are registered. The password is also
+  // checked BEFORE the disabled flag, so "disabled" is only ever disclosed to
+  // someone who proved they know the password.
+  const matches = await bcrypt.compare(password, user?.passwordHash || DUMMY_HASH);
+  if (!user || !matches) {
     throw new ApiError(401, 'Invalid email or password.');
   }
   if (!user.isActive) {
     throw new ApiError(403, 'This administrator account has been disabled.');
-  }
-
-  const matches = await bcrypt.compare(password, user.passwordHash);
-  if (!matches) {
-    throw new ApiError(401, 'Invalid email or password.');
   }
 
   user.lastLoginAt = new Date();

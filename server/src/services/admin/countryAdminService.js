@@ -1,4 +1,4 @@
-import { Country, Continent, Organization, Ministry, Person, CountryAdministration, AffiliatePastorsBoard } from '../../models/index.js';
+import { Country, Continent, Organization, Ministry, Person, CountryAdministration, AffiliatePastorsBoard, HistoryEvent } from '../../models/index.js';
 import { ApiError } from '../../utils/apiError.js';
 import { pickAllowed, requireObjectIdField } from '../../utils/adminHelpers.js';
 import { prepareImageField, releaseReplacedImage, releaseAssetIfUnreferenced } from '../mediaService.js';
@@ -78,12 +78,13 @@ export async function deleteCountryAdmin(id) {
   const country = await Country.findById(id);
   if (!country) throw new ApiError(404, `Country not found: ${id}`);
 
-  const [orgCount, ministryCount, personCount, adminCount, boardCount] = await Promise.all([
+  const [orgCount, ministryCount, personCount, adminCount, boardCount, historyCount] = await Promise.all([
     Organization.countDocuments({ country: id }),
     Ministry.countDocuments({ country: id }),
     Person.countDocuments({ roles: { $elemMatch: { country: id } } }),
     CountryAdministration.countDocuments({ country: id }),
     AffiliatePastorsBoard.countDocuments({ country: id }),
+    HistoryEvent.countDocuments({ country: id }),
   ]);
 
   const blockers = [];
@@ -92,6 +93,7 @@ export async function deleteCountryAdmin(id) {
   if (personCount > 0) blockers.push(`${personCount} ${personCount === 1 ? 'person' : 'people'} with a role in this country`);
   if (adminCount > 0) blockers.push('a country administration record');
   if (boardCount > 0) blockers.push('an affiliate pastors board record');
+  if (historyCount > 0) blockers.push(`${historyCount} history ${historyCount === 1 ? 'entry' : 'entries'}`);
 
   if (blockers.length > 0) {
     throw new ApiError(409, `Cannot delete this country: it still has ${blockers.join(', ')}. Remove or reassign them first.`);

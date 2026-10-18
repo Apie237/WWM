@@ -38,7 +38,7 @@ export default function HeritageBand() {
             Founded through the vision of missionaries who answered God&rsquo;s call, World Wide Missions continues the
             work of reaching the lost and building strong communities of faith.
           </p>
-          <CTAButton to="/about#our-history" variant="tertiary" className="mt-6">
+          <CTAButton to="/history" variant="tertiary" className="mt-6">
             Our Story
           </CTAButton>
         </div>

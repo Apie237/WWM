@@ -4,6 +4,7 @@ import SectionHeader from '../components/ui/SectionHeader.jsx'
 import InPageNav from '../components/ui/InPageNav.jsx'
 import PlaceholderSection from '../components/ui/PlaceholderSection.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
+import CTAButton from '../components/ui/CTAButton.jsx'
 import PersonCard from '../components/content/PersonCard.jsx'
 import { getPeople } from '../services/api.js'
 
@@ -86,12 +87,13 @@ export default function About() {
 
         <div id="our-history" className="scroll-mt-40 border-t border-wwm-neutral-300 py-10">
           <SectionHeader title="Our History" />
-          <div className="mt-5">
-            <EmptyState
-              title="Historical timeline coming soon"
-              description="Our History will be presented here as a structured, sourced timeline once historical records are added to the directory."
-            />
-          </div>
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-wwm-neutral-900">
+            From its international origins to its mission work in Cameroon and beyond, the history of World Wide Missions
+            is presented on its own page, with photographs, a leadership timeline and historical records.
+          </p>
+          <CTAButton to="/history" variant="tertiary" className="mt-5">
+            Read Our History
+          </CTAButton>
         </div>
 
         <div id="international-administration" className="scroll-mt-40 border-t border-wwm-neutral-300 py-10">

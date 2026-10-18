@@ -10,7 +10,7 @@ const ABOUT_LINKS = [
   { label: 'Mission Statement', to: '/about#mission' },
   { label: 'Our Vision', to: '/about#vision' },
   { label: 'Our Values', to: '/about#values' },
-  { label: 'Our Heritage', to: '/about#our-history' },
+  { label: 'Our Heritage', to: '/history' },
   { label: 'International Administration', to: '/about#international-administration' },
   { label: 'Leadership', to: '/about#national-leadership' },
   { label: 'Our Beliefs', to: '/about#beliefs' },

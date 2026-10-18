@@ -2,7 +2,8 @@ import axios from 'axios'
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
-export const api = axios.create({ baseURL })
+// A request that never answers should fail visibly, not spin forever.
+export const api = axios.create({ baseURL, timeout: 15000 })
 
 // Every public endpoint responds with { success, data, pagination? }.
 // Callers get back the unwrapped payload; a network/API failure propagates

@@ -26,8 +26,14 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-wwm-bg">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:bg-wwm-gold focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-wwm-navy"
+      >
+        Skip to main content
+      </a>
       <Header />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
         <Outlet />
       </main>
       <Footer />

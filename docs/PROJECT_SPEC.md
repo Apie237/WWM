@@ -452,3 +452,12 @@ Cloudinary will eventually handle:
 - "Give" is deferred until the owner supplies a payment provider and verified giving details.
 
 Do not implement any phase beyond the one currently in progress without explicit instruction. See `docs/PROGRESS.md` for live completion status.
+
+
+### Phase 10 production decisions (added 2026-10-17)
+
+- `CLIENT_ORIGIN` is an explicit allowlist (comma-separated, never `*`); `MONGODB_URI`, `CLIENT_ORIGIN` and `JWT_SECRET` are mandatory when `NODE_ENV=production`. `TRUST_PROXY` (hops) controls the client IP used by rate limiting (default 1 on Vercel).
+- API errors: expected failures return their own message; unexpected 5xx return a generic message with detail only in server logs; database outages return 503. Query parameters must be plain strings.
+- State-changing `/api/auth` and `/api/admin` requests carrying an `Origin` header outside the allowlist are refused (403); those responses are `Cache-Control: no-store`.
+- `GET /api/health` is liveness; `GET /api/health/ready` is readiness (503 when MongoDB is disconnected).
+- The administration frontend is a separately loaded bundle (`AdminRoutes.jsx`), is `noindex`, and checks the session only under `/admin`.

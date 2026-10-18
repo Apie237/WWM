@@ -277,7 +277,7 @@ Phase 8 — Remaining Public Modules: IMPLEMENTED EXCEPT "Give" (awaiting owner 
 
 Phase 9 — Media / Cloudinary: IMPLEMENTED for images on News, Events, People and Country flags (live Cloudinary not verified; see docs/PROGRESS.md).
 
-Phase 10 — Production Polish: NOT STARTED.
+Phase 10 — Production Polish: CODE-LEVEL HARDENING IMPLEMENTED (not production-verified; live MongoDB/Cloudinary/Vercel checks still required — see docs/PHASE10_README.md and docs/PROGRESS.md).
 
 **Phase 5 status note**: implemented the full database-driven Mission Locations hierarchy — `/mission-locations/:continent` (`ContinentPage`) and `/mission-locations/:continent/:country` (the one reusable `CountryPage` template, per the Country Architecture rule below). Country pages use the six-group section navigation (Overview, Leadership, Churches & Institutions, Missionaries & Ministries, News & Events, Contact), a new data-driven `LeadershipChart` shared by Country Administration and the Affiliate Pastors Board, and reuse of Phase 4's `DirectorySearch`/`OrganizationCard`/`PersonCard`. No backend changes were required — the existing Phase 3 public API already supported every query Phase 5 needed. See `docs/PROGRESS.md` for the full completion record (routes, components, verification, deferred items).
 
@@ -285,7 +285,7 @@ Phase 10 — Production Polish: NOT STARTED.
 
 **Phase 7 status note**: implemented full list/view/create/edit/delete/search/filter/pagination CRUD for all eight approved modules (Continents, Countries, People, Country Administration, Affiliate Pastors Boards, Churches, Institutions, Ministries — the last two both via the single `Organization` model, per the Country Architecture rule). Backend: seven new admin route/controller/service module groups under `server/src/{routes,controllers,services}/admin/`, following Routes → Controllers → Services → Models throughout, plus a shared `utils/adminHelpers.js`; every write whitelists fields and validates references, every delete with an incoming reference is blocked with a 409 rather than cascading, and `COUNTRY_ADMIN` scoping is enforced server-side from the verified JWT only. Frontend: a new `services/adminApi.js` client, a shared `components/admin/cms/` primitive set, and 8 modules' worth of list+form admin pages (Country Administration and Affiliate Pastors Board share one parameterized page-factory, since the two backend models are structurally identical). No Phase 2 models were changed. See `docs/PROGRESS.md` for the full completion record (authorization matrix, verification performed, and the known limitation that no reachable MongoDB was available in that session for DB-backed verification).
 
-Do not begin Phase 9 automatically. Phase 9 must be explicitly instructed before work starts.
+All ten planned phases have now been worked. Do not add new features or begin further phases unless explicitly instructed; the remaining work is the manual deployment verification listed in docs/PHASE10_README.md and the pending Give module (Phase 8).
 
 ---
 

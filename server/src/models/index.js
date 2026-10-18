@@ -14,3 +14,4 @@ export { default as Event } from './Event.js';
 export { default as Resource } from './Resource.js';
 export { default as PrayerRequest } from './PrayerRequest.js';
 export { default as ContactMessage } from './ContactMessage.js';
+export { default as HistoryEvent } from './HistoryEvent.js';

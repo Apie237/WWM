@@ -6,7 +6,7 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle.js'
 
 export default function AdminLogin() {
   useDocumentTitle('Administrator Sign In | World Wide Missions')
-  const { isAuthenticated, initializing, login } = useAuth()
+  const { isAuthenticated, initializing, login, sessionExpired } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
@@ -45,6 +45,12 @@ export default function AdminLogin() {
           Administrator Sign In
         </h1>
         <p className="mb-6 text-center text-sm text-wwm-neutral-600">World Wide Missions administration</p>
+
+        {sessionExpired && !error && (
+          <p role="status" className="mb-4 border border-wwm-gold bg-wwm-neutral-100 px-3 py-2 text-sm text-wwm-navy">
+            Your session has ended. Please sign in again to continue.
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div>

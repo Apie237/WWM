@@ -11,10 +11,16 @@ export default function AdminLayout() {
 
   return (
     <div className="flex min-h-screen bg-wwm-bg">
+      <a
+        href="#admin-main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:bg-wwm-gold focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-wwm-navy"
+      >
+        Skip to main content
+      </a>
       <AdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminHeader onMenuClick={() => setSidebarOpen(true)} />
-        <main id="admin-main-content" className="flex-1 p-4 sm:p-6">
+        <main id="admin-main-content" tabIndex={-1} className="flex-1 p-4 sm:p-6 focus:outline-none">
           <Outlet />
         </main>
       </div>

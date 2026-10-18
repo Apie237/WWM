@@ -82,3 +82,6 @@ export const mediaApi = {
       }),
     ),
 }
+
+// History entries (HistoryEvent).
+export const historyApi = crud('history')

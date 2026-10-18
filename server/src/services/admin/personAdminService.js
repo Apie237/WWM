@@ -1,4 +1,4 @@
-import { Person, Country, Organization, Ministry, CountryAdministration, AffiliatePastorsBoard } from '../../models/index.js';
+import { Person, Country, Organization, Ministry, CountryAdministration, AffiliatePastorsBoard, HistoryEvent } from '../../models/index.js';
 import { ApiError } from '../../utils/apiError.js';
 import { pickAllowed, requireValidObjectIdListField } from '../../utils/adminHelpers.js';
 import { PERSON_ROLE_TYPES } from '../../models/enums.js';
@@ -137,11 +137,12 @@ export async function deletePersonAdmin(id) {
   const person = await Person.findById(id);
   if (!person) throw new ApiError(404, `Person not found: ${id}`);
 
-  const [orgCount, ministryCount, adminCount, boardCount] = await Promise.all([
+  const [orgCount, ministryCount, adminCount, boardCount, historyCount] = await Promise.all([
     Organization.countDocuments({ 'leaders.person': id }),
     Ministry.countDocuments({ 'responsiblePeople.person': id }),
     CountryAdministration.countDocuments({ 'positions.person': id }),
     AffiliatePastorsBoard.countDocuments({ 'members.person': id }),
+    HistoryEvent.countDocuments({ people: id }),
   ]);
 
   const blockers = [];
@@ -149,6 +150,7 @@ export async function deletePersonAdmin(id) {
   if (ministryCount > 0) blockers.push(`listed as responsible for ${ministryCount} ${ministryCount === 1 ? 'ministry' : 'ministries'}`);
   if (adminCount > 0) blockers.push('holding a country administration position');
   if (boardCount > 0) blockers.push('holding an affiliate pastors board position');
+  if (historyCount > 0) blockers.push(`featured in ${historyCount} history ${historyCount === 1 ? 'entry' : 'entries'}`);
 
   if (blockers.length > 0) {
     throw new ApiError(409, `Cannot delete this person: still ${blockers.join(', ')}. Remove those references first.`);

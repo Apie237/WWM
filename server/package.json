@@ -10,6 +10,7 @@
     "verify:models": "node src/scripts/verifyModels.js",
     "seed": "node src/scripts/seed.js",
     "seed:admin": "node src/scripts/seedAdmin.js",
+    "seed:history": "node src/scripts/seedHistory.js",
     "test": "node --test \"src/__tests__/**/*.test.js\""
   },
   "dependencies": {

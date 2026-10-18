@@ -11,6 +11,7 @@ import {
   Newspaper,
   CalendarDays,
   FileText,
+  ScrollText,
   Megaphone,
   Mail,
   X,
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
   { label: 'News', to: '/admin/news', icon: Newspaper },
   { label: 'Events', to: '/admin/events', icon: CalendarDays },
   { label: 'Resources', to: '/admin/resources', icon: FileText },
+  { label: 'History', to: '/admin/history', icon: ScrollText },
   { label: 'Prayer Requests', to: '/admin/prayer-requests', icon: Megaphone },
   { label: 'Contact Messages', to: '/admin/contact-messages', icon: Mail },
 ]

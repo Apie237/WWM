@@ -12,6 +12,8 @@ export const UPLOAD_ROLES = {
   events: ALL_WRITERS,
   people: ALL_WRITERS,
   countries: ['SUPER_ADMIN', 'INTERNATIONAL_ADMIN', 'COUNTRY_ADMIN'],
+  // History is organization-wide: same writers as the History admin routes.
+  history: ['SUPER_ADMIN', 'INTERNATIONAL_ADMIN', 'CONTENT_EDITOR'],
 };
 
 export const getMediaConfig = asyncHandler(async (req, res) => {

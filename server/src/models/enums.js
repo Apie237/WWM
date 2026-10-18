@@ -61,3 +61,21 @@ export const RESOURCE_TYPES = ['sermon', 'devotional', 'tract', 'publication', '
 export const PRAYER_REQUEST_STATUSES = ['pending', 'approved', 'rejected'];
 
 export const CONTACT_MESSAGE_STATUSES = ['new', 'read', 'archived'];
+
+// History page (HistoryEvent — docs/PROJECT_SPEC.md §12). `section` decides where
+// an entry appears on the public History page; add a value here (and a section
+// heading in the client) to give a future country or theme its own block.
+export const HISTORY_SECTIONS = [
+  'introduction',
+  'origins',
+  'cameroon',
+  'cameroon-leadership',
+  'international-leadership',
+  'records',
+  'international-growth',
+];
+// event = a dated/narrative milestone; record = a historical document or address
+// shown in the "records" panel; pending = a placeholder for information not yet supplied.
+export const HISTORY_ENTRY_TYPES = ['event', 'record', 'pending'];
+// PRIVATE editorial status — never returned by the public API.
+export const HISTORY_REVIEW_STATUSES = ['unreviewed', 'needs_confirmation', 'confirmed'];

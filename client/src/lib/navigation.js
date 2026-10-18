@@ -19,7 +19,7 @@ export const NAV_ITEMS = [
       { label: "Purpose", to: "/about#purpose" },
       { label: "Our Approach", to: "/about#our-approach" },
       { label: "National Leadership", to: "/about#national-leadership" },
-      { label: "Our History", to: "/about#our-history" },
+      { label: "Our History", to: "/history" },
       { label: "International Administration", to: "/about#international-administration" },
       { label: "Legal & Organizational Information", to: "/about#legal" },
     ],

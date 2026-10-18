@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { env } from '../config/env.js';
 import { ApiError } from '../utils/apiError.js';
 import { cleanHttpUrl } from '../utils/inputValidation.js';
-import { News, Event, Person, Country } from '../models/index.js';
+import { News, Event, Person, Country, HistoryEvent } from '../models/index.js';
 
 // Phase 9 media service: validated image uploads to Cloudinary plus the
 // ownership/reference rules around attaching and releasing assets.
@@ -33,10 +33,11 @@ export const MEDIA_TARGETS = {
   events: { Model: Event, idField: 'imagePublicId' },
   people: { Model: Person, idField: 'photoPublicId' },
   countries: { Model: Country, idField: 'flagImagePublicId' },
+  history: { Model: HistoryEvent, idField: 'imagePublicId' },
 };
 export const MEDIA_KINDS = Object.keys(MEDIA_TARGETS);
 
-const PUBLIC_ID_RE = /^wwm\/(news|events|people|countries)\/[a-f0-9]{32}$/;
+const PUBLIC_ID_RE = /^wwm\/(news|events|people|countries|history)\/[a-f0-9]{32}$/;
 
 export function isMediaConfigured() {
   const { cloudName, apiKey, apiSecret } = env.cloudinary;

@@ -14,6 +14,7 @@ import resourcesAdminRouter from './admin/resources.js';
 import prayerRequestsAdminRouter from './admin/prayerRequests.js';
 import contactMessagesAdminRouter from './admin/contactMessages.js';
 import mediaAdminRouter from './admin/media.js';
+import historyAdminRouter from './admin/history.js';
 
 const router = Router();
 
@@ -39,6 +40,9 @@ router.use('/events', eventsAdminRouter);
 router.use('/resources', resourcesAdminRouter);
 router.use('/prayer-requests', prayerRequestsAdminRouter);
 router.use('/contact-messages', contactMessagesAdminRouter);
+
+// History entries (HistoryEvent).
+router.use('/history', historyAdminRouter);
 
 // Phase 9 media uploads.
 router.use('/media', mediaAdminRouter);

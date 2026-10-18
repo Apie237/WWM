@@ -16,7 +16,7 @@ import './helpers/smallUploadLimit.js'; // must load before the app
 import { createApp } from '../app.js';
 import { env } from '../config/env.js';
 import { signAdminToken } from '../services/authService.js';
-import { User, News, Event, Person, Country } from '../models/index.js';
+import { User, News, Event, Person, Country, HistoryEvent } from '../models/index.js';
 import { signParams, sniffImageMime, isValidPublicId, prepareImageField } from '../services/mediaService.js';
 
 const oid = () => new mongoose.Types.ObjectId().toString();
@@ -83,7 +83,7 @@ function asAdmin(role, countryId = null) {
 }
 
 // All four owning models' `exists`, driven by a set of "referenced" ids.
-const origExists = { News: News.exists, Event: Event.exists, Person: Person.exists, Country: Country.exists };
+const origExists = { News: News.exists, Event: Event.exists, Person: Person.exists, Country: Country.exists, HistoryEvent: HistoryEvent.exists };
 function mockReferences(referenced = []) {
   const set = new Set(referenced);
   const fn = async (filter) => {
@@ -91,7 +91,7 @@ function mockReferences(referenced = []) {
     if (key) return set.has(filter[key]) ? { _id: 1 } : null;
     return { _id: 1 }; // e.g. Country.exists({ _id }) used by reference validation
   };
-  News.exists = fn; Event.exists = fn; Person.exists = fn; Country.exists = fn;
+  News.exists = fn; Event.exists = fn; Person.exists = fn; Country.exists = fn; HistoryEvent.exists = fn;
 }
 
 // A stand-in that works both as `Model.findById(id)` (a document with
@@ -119,7 +119,7 @@ beforeEach(() => {
 afterEach(() => {
   globalThis.fetch = realFetch;
   User.findById = origFindById;
-  Object.assign(News, { exists: origExists.News }); Event.exists = origExists.Event; Person.exists = origExists.Person; Country.exists = origExists.Country;
+  Object.assign(News, { exists: origExists.News }); Event.exists = origExists.Event; Person.exists = origExists.Person; Country.exists = origExists.Country; HistoryEvent.exists = origExists.HistoryEvent;
   Object.assign(env.cloudinary, { cloudName: undefined, apiKey: undefined, apiSecret: undefined });
 });
 
