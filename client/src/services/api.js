@@ -60,6 +60,11 @@ export function getMinistries(params = {}) {
   return unwrap(api.get('/ministries', { params }))
 }
 
+// ---- History page (published HistoryEvent entries only) ----
+export function getHistory(params = {}) {
+  return unwrap(api.get('/history', { params }))
+}
+
 // ---- Phase 8 public modules ----
 export function getNews(params = {}) {
   return unwrap(api.get('/news', { params }))
