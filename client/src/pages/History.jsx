@@ -7,6 +7,7 @@ import LoadingState from '../components/ui/LoadingState.jsx'
 import HistoryFeature from '../components/history/HistoryFeature.jsx'
 import LeadershipTimeline from '../components/history/LeadershipTimeline.jsx'
 import HistoricalRecords from '../components/history/HistoricalRecords.jsx'
+import EntryPhoto from '../components/history/EntryPhoto.jsx'
 import Reveal from '../components/history/Reveal.jsx'
 import { getHistory } from '../services/api.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
@@ -125,6 +126,7 @@ export default function History() {
                 <ol className="mt-14 grid gap-6 border-t border-wwm-neutral-300 pt-10 md:grid-cols-2">
                   {by.cameroon.slice(1).map((e) => (
                     <Reveal as="li" key={e._id} className="list-none border-l-2 border-wwm-gold bg-wwm-white p-6">
+                      <EntryPhoto entry={e} />
                       {e.dateLabel && <p className="text-xs font-semibold uppercase tracking-[0.2em] text-wwm-gold">{e.dateLabel}</p>}
                       <h3 className="mt-1 text-lg font-bold text-wwm-navy">{e.title}</h3>
                       {e.location && <p className="text-sm text-wwm-neutral-600">{e.location}</p>}
@@ -170,6 +172,7 @@ export default function History() {
                     </Reveal>
                   ) : (
                     <Reveal as="article" key={e._id} className="border-l-2 border-wwm-gold bg-wwm-bg p-6">
+                      <EntryPhoto entry={e} />
                       {e.dateLabel && <p className="text-xs font-semibold uppercase tracking-[0.2em] text-wwm-gold">{e.dateLabel}</p>}
                       <h3 className="mt-1 text-lg font-bold text-wwm-navy">{e.title}</h3>
                       <p className="mt-3 text-base leading-relaxed text-wwm-neutral-900">{e.description}</p>

@@ -113,6 +113,24 @@ export default function HistoryForm() {
         <textarea id="description" rows={7} maxLength={5000} className={inputClasses} value={form.description} onChange={(e) => update('description', e.target.value)} />
       </FormField>
 
+      <fieldset className="flex flex-col gap-4 border border-wwm-neutral-300 p-4">
+        <legend className="px-1 text-sm font-semibold uppercase tracking-wide text-wwm-navy">Photograph (upload an image)</legend>
+        <p className="text-xs text-wwm-neutral-600">Optional. Shown beside this entry on the public History page once it is published.</p>
+        <ImageUpload
+          id="imageUrl"
+          kind="history"
+          value={{ url: form.imageUrl, publicId: form.imagePublicId }}
+          onChange={(v) => setForm((p) => ({ ...p, imageUrl: v.url, imagePublicId: v.publicId }))}
+          disabled={readOnly}
+        />
+        <FormField label="Alternative text" htmlFor="imageAlt" hint="Describe the photograph for screen-reader users, e.g. “Bearl and Virginia Smalldridge as a young couple”.">
+          <input id="imageAlt" maxLength={300} className={inputClasses} value={form.imageAlt} onChange={(e) => update('imageAlt', e.target.value)} />
+        </FormField>
+        <FormField label="Caption" htmlFor="imageCaption">
+          <input id="imageCaption" maxLength={300} className={inputClasses} value={form.imageCaption} onChange={(e) => update('imageCaption', e.target.value)} />
+        </FormField>
+      </fieldset>
+
       <fieldset className="grid gap-4 border border-wwm-neutral-300 p-4 sm:grid-cols-2">
         <legend className="px-1 text-sm font-semibold uppercase tracking-wide text-wwm-navy">Date and place</legend>
         <FormField label="Date as shown" htmlFor="dateLabel" hint="Exactly how it should read, e.g. “1960s” or “1985–2021”.">
@@ -174,23 +192,6 @@ export default function HistoryForm() {
             <Plus size={16} aria-hidden="true" /> Add person
           </button>
         )}
-      </fieldset>
-
-      <fieldset className="flex flex-col gap-4 border border-wwm-neutral-300 p-4">
-        <legend className="px-1 text-sm font-semibold uppercase tracking-wide text-wwm-navy">Photograph</legend>
-        <ImageUpload
-          id="imageUrl"
-          kind="history"
-          value={{ url: form.imageUrl, publicId: form.imagePublicId }}
-          onChange={(v) => setForm((p) => ({ ...p, imageUrl: v.url, imagePublicId: v.publicId }))}
-          disabled={readOnly}
-        />
-        <FormField label="Alternative text" htmlFor="imageAlt" hint="Describe the photograph for screen-reader users, e.g. “Bearl and Virginia Smalldridge as a young couple”.">
-          <input id="imageAlt" maxLength={300} className={inputClasses} value={form.imageAlt} onChange={(e) => update('imageAlt', e.target.value)} />
-        </FormField>
-        <FormField label="Caption" htmlFor="imageCaption">
-          <input id="imageCaption" maxLength={300} className={inputClasses} value={form.imageCaption} onChange={(e) => update('imageCaption', e.target.value)} />
-        </FormField>
       </fieldset>
 
       <FormField label="Source line (public)" htmlFor="source" hint="Shown under the entry, e.g. “Founder-supplied notes”. Do not imply outside verification.">

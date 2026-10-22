@@ -4,7 +4,8 @@ import CTAButton from '../ui/CTAButton.jsx'
 import ImagePlaceholder from '../ui/ImagePlaceholder.jsx'
 import EmptyState from '../ui/EmptyState.jsx'
 import PioneerCard from '../content/PioneerCard.jsx'
-import { getPeople } from '../../services/api.js'
+import { getPeople, getHistory } from '../../services/api.js'
+import { imageSrc, imageSrcSet } from '../../lib/images.js'
 
 // Heritage/legacy narrative + pioneer profiles, on the cream heritage
 // surface (docs/DESIGN_SPEC.md §3, §8). Pioneer profiles are read from the
@@ -13,6 +14,8 @@ import { getPeople } from '../../services/api.js'
 // later phase, not content to bake into this component.
 export default function HeritageBand() {
   const [pioneers, setPioneers] = useState(null)
+  const [photo, setPhoto] = useState(null)
+  const [photoBroken, setPhotoBroken] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -23,6 +26,23 @@ export default function HeritageBand() {
       .catch(() => {
         if (!cancelled) setPioneers([])
       })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // The archival photograph is the first published "origins" History entry that
+  // has a photograph of its own (uploaded in Admin → History). Nothing is shown
+  // that was not published there; with none (or on any error) the labelled
+  // placeholder stays.
+  useEffect(() => {
+    let cancelled = false
+    getHistory({ section: 'origins', limit: 50 })
+      .then(({ data }) => {
+        const entry = data.find((e) => e.imageUrl)
+        if (!cancelled && entry) setPhoto({ url: entry.imageUrl, alt: entry.imageAlt || entry.title, caption: entry.imageCaption })
+      })
+      .catch(() => {})
     return () => {
       cancelled = true
     }
@@ -42,7 +62,22 @@ export default function HeritageBand() {
             Our Story
           </CTAButton>
         </div>
-        <ImagePlaceholder label="Archival heritage photograph" />
+        {photo && !photoBroken ? (
+          <figure>
+            <img
+              src={imageSrc(photo.url, 800)}
+              srcSet={imageSrcSet(photo.url, [480, 800, 1200])}
+              sizes="(min-width: 1024px) 560px, 100vw"
+              alt={photo.alt}
+              loading="lazy"
+              onError={() => setPhotoBroken(true)}
+              className="aspect-[4/3] w-full border border-wwm-neutral-300 bg-wwm-white object-cover object-top"
+            />
+            {photo.caption && <figcaption className="mt-2 text-xs text-wwm-neutral-600">{photo.caption}</figcaption>}
+          </figure>
+        ) : (
+          <ImagePlaceholder label="Archival heritage photograph" />
+        )}
       </div>
 
       <div className="mt-12 border-t border-wwm-neutral-300 pt-10">
