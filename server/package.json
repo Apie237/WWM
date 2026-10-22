@@ -10,6 +10,8 @@
     "verify:models": "node src/scripts/verifyModels.js",
     "seed": "node src/scripts/seed.js",
     "seed:admin": "node src/scripts/seedAdmin.js",
+    "admin:check": "node src/scripts/checkAdmin.js",
+    "admin:reset-password": "node src/scripts/resetAdminPassword.js",
     "seed:history": "node src/scripts/seedHistory.js",
     "seed:history:check": "node src/scripts/seedHistory.js --check",
     "seed:history:publish": "node src/scripts/seedHistory.js --publish-seeded",
