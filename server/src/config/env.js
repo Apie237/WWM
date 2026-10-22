@@ -42,14 +42,50 @@ if (cloudinaryVars.some(Boolean) && !cloudinaryVars.every(Boolean)) {
   console.warn('[env] Cloudinary is only partly configured; image uploads stay disabled until all three CLOUDINARY_* variables are set.');
 }
 
-// CLIENT_ORIGIN may be a comma-separated allowlist (e.g. the production domain
-// plus a www alias). Never "*": the admin cookie requires credentialed CORS.
-const clientOrigins = requireInProduction('CLIENT_ORIGIN', 'http://localhost:5173')
-  .split(',')
-  .map((o) => o.trim().replace(/\/+$/, ''))
-  .filter(Boolean);
-if (clientOrigins.includes('*')) {
-  throw new Error('CLIENT_ORIGIN must list explicit origins, not "*".');
+// CLIENT_ORIGIN is a comma-separated allowlist of EXACT browser origins
+// (scheme://host[:port]), e.g. "http://localhost:5173" in development or the
+// production domain plus a www alias. Never "*": the admin cookie requires
+// credentialed CORS.
+//
+// Each entry is parsed as a URL and reduced to its origin, so harmless
+// variations (trailing slash, a path, upper-case host) still match what the
+// browser sends. An entry that is not a valid http(s) origin (for example
+// "localhost:5173" with no scheme) could never match any request, so it is
+// reported instead of being silently kept. Note that "localhost" and
+// "127.0.0.1" are different origins.
+export function parseClientOrigins(raw) {
+  const origins = [];
+  const invalid = [];
+  for (const piece of String(raw).split(',')) {
+    const entry = piece.trim();
+    if (!entry) continue;
+    if (entry.includes('*')) throw new Error('CLIENT_ORIGIN must list explicit origins, not "*".');
+    let url = null;
+    try {
+      url = new URL(entry);
+    } catch {
+      /* invalid, handled below */
+    }
+    if (!url || !['http:', 'https:'].includes(url.protocol) || !url.hostname) {
+      invalid.push(entry);
+      continue;
+    }
+    if (!origins.includes(url.origin)) origins.push(url.origin);
+  }
+  return { origins, invalid };
+}
+
+const { origins: clientOrigins, invalid: invalidClientOrigins } = parseClientOrigins(
+  requireInProduction('CLIENT_ORIGIN', 'http://localhost:5173')
+);
+if (invalidClientOrigins.length) {
+  console.warn(
+    `[env] Ignoring invalid CLIENT_ORIGIN entr${invalidClientOrigins.length === 1 ? 'y' : 'ies'}: ` +
+      `${invalidClientOrigins.map((e) => JSON.stringify(e)).join(', ')}. Use scheme://host[:port], e.g. http://localhost:5173.`
+  );
+}
+if (!clientOrigins.length) {
+  throw new Error('CLIENT_ORIGIN contains no valid origin. Use scheme://host[:port], e.g. http://localhost:5173.');
 }
 
 // Number of reverse-proxy hops in front of Express (0 = none). On Vercel the

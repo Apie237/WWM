@@ -18,7 +18,7 @@ import historyRouter from './routes/history.js';
 import authRouter from './routes/auth.js';
 import adminRouter from './routes/admin.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
-import { rejectNonStringQuery, requireTrustedOrigin, noStore } from './middleware/security.js';
+import { rejectNonStringQuery, requireTrustedOrigin, noStore, corsOrigin } from './middleware/security.js';
 
 export function createApp() {
   const app = express();
@@ -35,11 +35,8 @@ export function createApp() {
   // unauthenticated routes below, which never read cookies.
   app.use(
     cors({
-      // Explicit allowlist only. Requests without an Origin header (curl,
-      // server-to-server) are not CORS requests and pass through untouched.
-      origin(origin, callback) {
-        callback(null, !origin || env.clientOrigins.includes(origin) ? origin || true : false);
-      },
+      // Explicit allowlist only (see middleware/security.js corsOrigin).
+      origin: corsOrigin,
       credentials: true,
     })
   );

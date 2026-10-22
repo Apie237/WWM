@@ -25,6 +25,7 @@ function start() {
   const app = createApp();
   const server = app.listen(env.port, () => {
     console.log(`[server] listening on port ${env.port} (${env.nodeEnv})`);
+    console.log(`[server] CORS allowed origins: ${env.clientOrigins.join(', ')}`);
   });
 
   server.on('error', (err) => {

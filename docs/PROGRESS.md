@@ -201,3 +201,12 @@ Full detail, audit and deployment steps: `docs/PHASE10_README.md`.
 
 **Verification**: 20 new tests in `adminAccount.test.js` (seed → login over real HTTP, the `#` trap, create-only seeding, read-only check, reset safety); deliberate breaks of each rule were caught. Not verified: no MongoDB was available, so the scripts were not run against a real database or a real login form.
 
+
+## Local-development CORS diagnosis (2026-10-22)
+
+**Problem**: the frontend at `http://localhost:5173` got "No 'Access-Control-Allow-Origin' header" from the backend. The CORS logic itself was correct (an unset or correct `CLIENT_ORIGIN` produced the right preflight and headers), but a `CLIENT_ORIGIN` that did not exactly match the browser's origin — another host or port, no scheme, a path, a copied placeholder URL — failed silently with no hint on the server.
+
+**Changes** (Phase 10 protections unchanged: exact-origin allowlist, no `*`, trusted-origin check on state-changing requests, `no-store`): each `CLIENT_ORIGIN` entry is parsed to a clean origin (trailing slash, path and case no longer matter); invalid entries such as `localhost:5173` are reported, and a value with no valid origin stops startup with a clear message; the allowed origins are printed at startup; outside production a blocked origin is logged once with the allowed list and the fix; `.env.example` explains the exact-match rule.
+
+**Verification**: 20 new tests in `corsDevelopment.test.js` (allowed dev origin incl. OPTIONS preflight and the 401 from `/api/auth/me`, normalisation, rejected and wildcard values, untrusted origins get no CORS headers, blocked-origin hint not logged in production); five deliberate breaks were each caught. Not verified: a real browser against the real backend and database.
+

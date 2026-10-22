@@ -40,3 +40,29 @@ export function noStore(req, res, next) {
   res.set('Cache-Control', 'no-store');
   next();
 }
+
+// CORS origin check (used by app.js). Only the exact configured origins get CORS
+// headers; anything else gets none, so the browser blocks the response. A request
+// with no Origin header (curl, server-to-server) is not a CORS request.
+//
+// In development a blocked origin is the single most common local-setup problem
+// (CLIENT_ORIGIN not matching the address in the browser bar), and the browser
+// only says "No Access-Control-Allow-Origin header". So, outside production,
+// say once per origin what was blocked and what is allowed. Origins are not
+// secrets; the value is JSON-quoted and length-capped so it cannot forge log lines.
+const reportedOrigins = new Set();
+export function corsOrigin(origin, callback) {
+  if (!origin || env.clientOrigins.includes(origin)) {
+    callback(null, origin || true);
+    return;
+  }
+  if (env.nodeEnv !== 'production' && reportedOrigins.size < 20 && !reportedOrigins.has(origin)) {
+    reportedOrigins.add(origin);
+    console.warn(
+      `[cors] Blocked a request from origin ${JSON.stringify(String(origin).slice(0, 200))}. ` +
+        `Allowed origins: ${env.clientOrigins.join(', ')}. ` +
+        'To allow this frontend, set CLIENT_ORIGIN in server/.env to its exact address (scheme://host:port) and restart the server.'
+    );
+  }
+  callback(null, false);
+}
