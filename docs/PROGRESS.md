@@ -210,3 +210,14 @@ Full detail, audit and deployment steps: `docs/PHASE10_README.md`.
 
 **Verification**: 20 new tests in `corsDevelopment.test.js` (allowed dev origin incl. OPTIONS preflight and the 401 from `/api/auth/me`, normalisation, rejected and wildcard values, untrusted origins get no CORS headers, blocked-origin hint not logged in production); five deliberate breaks were each caught. Not verified: a real browser against the real backend and database.
 
+
+## Vercel deployment readiness (2026-10-22; not deployed)
+
+Full guide, project settings, variable names and checks: `docs/DEPLOYMENT.md`.
+
+**Findings**: the two Vercel configs and the serverless entry (`server/api/index.js`) were already in place and behave correctly in production mode. Two gaps closed: (1) a Vercel build without `VITE_API_URL` would silently ship a client that calls `http://localhost:5000/api` — Vercel builds now fail unless it is an `https://` non-local URL (`client/deploy/checkApiUrl.js`, applied in `vite.config.js`; local builds unaffected); (2) the client lockfile carried a high-severity advisory in `follow-redirects` (a transitive axios dependency only used by Node, not the browser bundle) — updated 1.16.0 → 1.16.1 in `client/package-lock.json` only.
+
+**Verification**: 14 new tests in `deploymentConfig.test.js` (both `vercel.json` files, production cookie attributes, the build guard, and the real Vercel entry in production mode with an unreachable database); deliberate breaks of each were caught. `npm audit --omit=dev`: 0 vulnerabilities in both packages.
+
+**Not done / not verified**: no deployment was performed (no Vercel access from the authoring environment). Vercel's runtime, Atlas connectivity from Vercel, DNS/HTTPS and a real browser against the deployed pair are unverified. Main open risk: with the default `*.vercel.app` addresses the admin cookie is cross-site and some browsers will block it — a custom domain with `www.`/`api.` subdomains is recommended (see `docs/DEPLOYMENT.md` §4).
+
