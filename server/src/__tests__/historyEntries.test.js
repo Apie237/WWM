@@ -13,7 +13,7 @@ import { signAdminToken } from '../services/authService.js';
 import { HistoryEvent, Person, Country, User, Organization, Ministry, CountryAdministration, AffiliatePastorsBoard } from '../models/index.js';
 import { HISTORY_SECTIONS } from '../models/enums.js';
 import { HISTORY_SEED } from '../scripts/historySeedData.js';
-import { resolvePeople } from '../scripts/seedHistory.js';
+import { resolvePeople, runSeed, summarizeState, modeFromArgs, SEED_KEYS } from '../scripts/seedHistory.js';
 import { isValidPublicId } from '../services/mediaService.js';
 
 const oid = () => new mongoose.Types.ObjectId().toString();
@@ -250,5 +250,133 @@ describe('seed helper — linking people', () => {
     assert.deepEqual(r.ids, [a]);
     assert.equal(r.missing.length, 2);
     assert.match(r.missing[0], /ambiguous/);
+  });
+});
+
+// Regression: the public page showed nothing after the seed script was run.
+// These tests pin down the seed → database → public-API chain without MongoDB.
+describe('seed → public API chain', () => {
+  const origUpdateOne = HistoryEvent.updateOne;
+  const origUpdateMany = HistoryEvent.updateMany;
+  const origFind = HistoryEvent.find;
+  const origCount = HistoryEvent.countDocuments;
+  const origPersonFind = Person.find;
+  afterEach(() => {
+    HistoryEvent.updateOne = origUpdateOne; HistoryEvent.updateMany = origUpdateMany;
+    HistoryEvent.find = origFind; HistoryEvent.countDocuments = origCount; Person.find = origPersonFind;
+  });
+
+  // A tiny in-memory stand-in for the collection, honouring upsert/$setOnInsert,
+  // updateMany({key:{$in},status:{$ne}}) and the public API's { status } filter.
+  function fakeCollection(initial = []) {
+    const rows = initial.map((r) => ({ ...r }));
+    const writes = { updateOne: 0, updateMany: 0 };
+    Person.find = () => ({ select: () => ({ lean: async () => [] }) });
+    HistoryEvent.updateOne = async (filter, update) => {
+      writes.updateOne++;
+      if (rows.some((r) => r.key === filter.key)) return { upsertedCount: 0 };
+      rows.push({ ...update.$setOnInsert, key: filter.key });
+      return { upsertedCount: 1 };
+    };
+    HistoryEvent.updateMany = async (filter, update) => {
+      writes.updateMany++;
+      let n = 0;
+      for (const r of rows) {
+        if (filter.key.$in.includes(r.key) && r.status !== filter.status.$ne) { Object.assign(r, update.$set); n++; }
+      }
+      return { modifiedCount: n };
+    };
+    const match = (f) => rows.filter((r) => Object.entries(f).every(([k, v]) => r[k] === v));
+    HistoryEvent.find = (f = {}) => {
+      const chain = { select: () => chain, populate: () => chain, sort: () => chain, limit: () => chain, lean: async () => match(f).map((r) => ({ _id: oid(), ...r })) };
+      return chain;
+    };
+    HistoryEvent.countDocuments = async (f = {}) => match(f).length;
+    return { rows, writes };
+  }
+  const silent = { log: () => {} };
+
+  test('every seed entry is a valid HistoryEvent and, once published, satisfies the public filter', () => {
+    for (const e of HISTORY_SEED) {
+      const { people, ...fields } = e;
+      const doc = new HistoryEvent({ ...fields, status: 'published' });
+      assert.equal(doc.validateSync(), undefined, `${e.key} must pass the schema`);
+      assert.equal(doc.status, 'published');
+    }
+  });
+
+  test('default run inserts all entries as published and the public API returns them', async () => {
+    fakeCollection();
+    await runSeed({ mode: 'insert', ...silent });
+    const r = await api('GET', '/api/history');
+    assert.equal(r.status, 200);
+    assert.equal(r.json.pagination.total, HISTORY_SEED.length);
+    assert.equal(r.json.data.length, HISTORY_SEED.length);
+  });
+
+  test('re-running is idempotent: no duplicates are created', async () => {
+    const { rows } = fakeCollection();
+    await runSeed({ mode: 'insert', ...silent });
+    await runSeed({ mode: 'insert', ...silent });
+    assert.equal(rows.length, HISTORY_SEED.length);
+    assert.equal(new Set(rows.map((r) => r.key)).size, rows.length);
+  });
+
+  test('entries seeded as drafts are NOT public — the reported symptom', async () => {
+    fakeCollection();
+    await runSeed({ mode: 'draft', ...silent });
+    const r = await api('GET', '/api/history');
+    assert.equal(r.json.pagination.total, 0);
+    assert.deepEqual(r.json.data, []);
+  });
+
+  test('a normal re-run does NOT publish existing drafts, and says so instead of claiming success', async () => {
+    const { rows } = fakeCollection();
+    await runSeed({ mode: 'draft', ...silent });
+    const lines = [];
+    await runSeed({ mode: 'insert', log: (l) => lines.push(l) });
+    assert.ok(rows.every((r) => r.status === 'draft'), 'existing status is never overwritten by the normal run');
+    const out = lines.join('\n');
+    assert.match(out, /created 0 new published entries; left 15 existing/);
+    assert.match(out, /WARNING: 15 seed entries exist as DRAFT/);
+    assert.match(out, /seed:history:publish/);
+    assert.equal((await api('GET', '/api/history')).json.data.length, 0);
+  });
+
+  test('--publish-seeded publishes only seed entries that are drafts; edits to other entries are untouched', async () => {
+    const { rows } = fakeCollection([{ key: 'my-own-entry', title: 'Mine', status: 'draft' }]);
+    await runSeed({ mode: 'draft', ...silent });
+    await runSeed({ mode: 'publish', ...silent });
+    assert.ok(rows.filter((r) => SEED_KEYS.includes(r.key)).every((r) => r.status === 'published'));
+    assert.equal(rows.find((r) => r.key === 'my-own-entry').status, 'draft');
+    assert.equal(rows.length, HISTORY_SEED.length + 1, 'nothing created or deleted');
+    assert.equal((await api('GET', '/api/history')).json.data.length, HISTORY_SEED.length);
+  });
+
+  test('--check is strictly read-only and reports the real counts', async () => {
+    const { writes } = fakeCollection();
+    await runSeed({ mode: 'draft', ...silent });
+    const before = { ...writes };
+    const lines = [];
+    await runSeed({ mode: 'check', log: (l) => lines.push(l) });
+    assert.deepEqual(writes, before, 'no write calls in check mode');
+    assert.match(lines.join('\n'), /0 published, 15 draft/);
+    assert.match(lines.join('\n'), /Read-only check/);
+  });
+
+  test('summarizeState classifies published, draft and missing seed keys', () => {
+    const s = summarizeState([{ key: SEED_KEYS[0], status: 'published' }, { key: SEED_KEYS[1], status: 'draft' }, { key: 'other', status: 'published' }]);
+    assert.equal(s.total, 3); assert.equal(s.published, 2); assert.equal(s.draft, 1);
+    assert.deepEqual(s.seedPublished, [SEED_KEYS[0]]); assert.deepEqual(s.seedDraft, [SEED_KEYS[1]]);
+    assert.equal(s.seedMissing.length, SEED_KEYS.length - 2);
+  });
+
+  test('command-line options: one mode at a time, unknown options rejected', () => {
+    assert.equal(modeFromArgs([]), 'insert');
+    assert.equal(modeFromArgs(['--draft']), 'draft');
+    assert.equal(modeFromArgs(['--check']), 'check');
+    assert.equal(modeFromArgs(['--publish-seeded']), 'publish');
+    assert.throws(() => modeFromArgs(['--drat']), /Unknown option/);
+    assert.throws(() => modeFromArgs(['--check', '--draft']), /only one/);
   });
 });

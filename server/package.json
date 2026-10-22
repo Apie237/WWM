@@ -11,6 +11,8 @@
     "seed": "node src/scripts/seed.js",
     "seed:admin": "node src/scripts/seedAdmin.js",
     "seed:history": "node src/scripts/seedHistory.js",
+    "seed:history:check": "node src/scripts/seedHistory.js --check",
+    "seed:history:publish": "node src/scripts/seedHistory.js --publish-seeded",
     "test": "node --test \"src/__tests__/**/*.test.js\""
   },
   "dependencies": {
