@@ -201,17 +201,25 @@ describe('supplied founder content integrity', () => {
   test('every page section has content', () => {
     for (const s of HISTORY_SECTIONS) assert.ok(HISTORY_SEED.some((e) => e.section === s), s);
   });
-  test('supplied details are preserved verbatim', () => {
+  test('supplied facts are preserved (names, dates, places, numbers, relationships)', () => {
     for (const must of [
-      'February 26, 1897', 'Church of the Nazarene', 'approximately 200 books', '35-year', 'Heroine of Burma', '1947',
-      'Bearl Darwin Smalldridge (1928–2016)', 'Bahamas and Liberia', 'over 50 churches', 'West and East Cameroon',
-      'World Wide Missions Secondary School in Mupundu-Muyuka in 1969', 'more than five years',
+      '26 February 1897', 'Church of the Nazarene', 'approximately 200 books', 'career of 35 years', 'Heroine of Burma', '1947',
+      'Bearl Darwin Smalldridge (1928–2016)', 'commissioned by WWMI in the 1960s as its first missionary to Cameroon',
+      'his wife, Virginia Smalldridge', 'Bahamas and Liberia during the 1950s and 1960s', 'more than 50 churches', 'West and East Cameroon',
+      'In 1969 the Smalldridges founded the World Wide Missions Secondary School in Mupundu-Muyuka', 'more than five years',
       'returned to Cameroon in 2008', 'Director of World Wide Missions Cameroon',
-      'Rev. Ebai Aloysius', 'Rev. Anang Christopher Fang', '36 years (1985–2021)', 'over 50 nations',
+      'Rev. Ebai Aloysius was the first official superintendent', 'Rev. Anang Christopher Fang is the present, and second, official superintendent',
+      'CEO of World-Wide Missions for 36 years, from 1985 to 2021', 'more than 50 nations',
       'Uganda, Kenya, India and the Philippines',
       '1593 East Colorado Boulevard', 'P.O. Box G, Pasadena, CA 91109', 'P.O. Box 44, Muyuka, Southwest Region, Cameroon',
       'Officially authorized by Decree No. 71/DF/608 of 3 December 1971. Headquarters historically recorded at Muyuka, Cameroon.',
     ]) assert.ok(allText.includes(must), `missing: ${must}`);
+  });
+  test('the organization names are used as supplied (World-Wide Missions vs World Wide Missions are not normalised)', () => {
+    assert.match(byKey['basil-miller'].description, /became World-Wide Missions\b/);
+    assert.match(byKey['fred-johnson'].description, /CEO of World-Wide Missions/);
+    assert.match(byKey['secondary-school'].description, /World Wide Missions Secondary School/);
+    assert.match(byKey['jonathan-smalldridge'].description, /World Wide Missions Cameroon/);
   });
   test('Brazil is only a pending placeholder — no invented date, people or activities', () => {
     const b = byKey['brazil-pending'];
@@ -229,11 +237,17 @@ describe('supplied founder content integrity', () => {
     assert.match(byKey['ebai-superintendent'].reviewNote, /Elias A\. Ebai/);
     assert.match(byKey['secondary-school'].reviewNote, /Mpundu-Muyuka/);
   });
-  test('the public text states claims as the founder’s notes, never as verified fact', () => {
+  test('public narrative reads as institutional history: no research-note or hedging phrases', () => {
     assert.ok(!/\bverified\b|\bconfirmed\b/i.test(allText));
-    for (const k of ['smalldridge-couple', 'churches-established', 'secondary-school', 'fred-johnson']) {
-      assert.match(byKey[k].description, /notes|according to/i, k);
+    const editorial = /according to|the (founder['’]s )?notes\b|founder['’]s notes|notes (state|indicate|suggest|cite)|records? (indicate|suggest|show)|it is said|available information|information suggests|based on the|reportedly|identified in|\bthey cite\b/i;
+    for (const e of HISTORY_SEED) {
+      for (const f of ['title', 'subtitle', 'description', 'dateLabel', 'imageCaption', 'imageAlt']) {
+        assert.ok(!editorial.test(e[f] || ''), `${e.key}.${f}: ${e[f]}`);
+      }
     }
+  });
+  test('attribution stays in the separate source line and the private review fields', () => {
+    for (const e of HISTORY_SEED) assert.ok(e.source, e.key);
   });
   test('leadership order follows the supplied succession only', () => {
     const order = HISTORY_SEED.filter((e) => e.section === 'cameroon-leadership').sort((a, b) => a.order - b.order).map((e) => e.key);
@@ -376,6 +390,9 @@ describe('seed → public API chain', () => {
     assert.equal(modeFromArgs(['--draft']), 'draft');
     assert.equal(modeFromArgs(['--check']), 'check');
     assert.equal(modeFromArgs(['--publish-seeded']), 'publish');
+    assert.equal(modeFromArgs(['--check-text']), 'check-text');
+    assert.equal(modeFromArgs(['--update-text']), 'update-text');
+    assert.throws(() => modeFromArgs(['--update-text', '--draft']), /only one/);
     assert.throws(() => modeFromArgs(['--drat']), /Unknown option/);
     assert.throws(() => modeFromArgs(['--check', '--draft']), /only one/);
   });

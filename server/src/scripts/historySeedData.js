@@ -4,9 +4,15 @@
 //
 // Rules followed here (CLAUDE.md "Data Integrity"):
 //  - Only facts supplied by the founder are used; nothing is added or inferred.
-//  - Public wording is attributed ("The notes state…"), never asserted as verified.
+//  - Public wording is written as the organization's own institutional history,
+//    in plain formal English. It carries no research-note phrasing ("according
+//    to…", "the notes state…"); provenance lives in the separate `source` line
+//    and in the PRIVATE review fields below, never inside the narrative.
 //  - `reviewStatus` / `reviewNote` are PRIVATE and list exactly what still needs
 //    founder confirmation. They are never returned by the public API.
+//  - Rewording must not change a fact. Text that was reworded is listed in
+//    historySeedLegacy.js so `npm run seed:history:update-text` can upgrade
+//    records that still hold the earlier wording (and leave admin edits alone).
 //  - No dates, titles or relationships beyond the supplied material.
 // `people` holds display names to link to EXISTING Person records (the seed never
 // creates people); unmatched names are reported by the script.
@@ -22,7 +28,7 @@ export const HISTORY_SEED = [
     section: 'introduction',
     title: 'Our History',
     description:
-      'World Wide Missions International traces its story through ministers, missionaries and Christian workers: from Basil Miller, a minister and author whose missionary writing connected believers around the world, to Bearl and Virginia Smalldridge, who served in Cameroon, and the leaders who have carried the work forward. The account below was supplied by the founder and is presented as the organization’s own history.',
+      'World Wide Missions International traces its history through the ministers, missionaries and Christian workers who have shaped its work: from Basil Miller, a minister and author whose missionary writing connected believers around the world; to Bearl and Virginia Smalldridge, who served in Cameroon; and to the leaders who have carried the work forward.',
     order: 0,
     source: NOTES,
     reviewStatus: CONFIRM,
@@ -35,10 +41,10 @@ export const HISTORY_SEED = [
     section: 'origins',
     title: 'Basil Miller',
     subtitle: 'Minister, pastor, teacher and author',
-    dateLabel: 'Born February 26, 1897',
+    dateLabel: 'Born 26 February 1897',
     year: 1897,
     description:
-      'The founder’s notes identify Basil Miller as a Church of the Nazarene minister, pastor, teacher and Christian author. They state that he later founded the mission organization that became World-Wide Missions, and that his missionary literature helped build connections with Christian workers around the world.',
+      'Basil Miller was a Church of the Nazarene minister, pastor, teacher and Christian author. He later founded the mission organization that became World-Wide Missions, and his missionary literature helped build connections with Christian workers around the world.',
     people: ['Basil Miller'],
     order: 10,
     source: NOTES,
@@ -53,7 +59,7 @@ export const HISTORY_SEED = [
     title: 'A writing ministry',
     dateLabel: '35-year writing career',
     description:
-      'The notes state that Basil Miller wrote approximately 200 books and thousands of articles over a 35-year writing career. They cite Heroine of Burma, published by World-Wide Missions in 1947.',
+      'Over a writing career of 35 years, Basil Miller wrote approximately 200 books and thousands of articles. His published works include Heroine of Burma, issued by World-Wide Missions in 1947.',
     people: ['Basil Miller'],
     order: 20,
     source: NOTES,
@@ -72,7 +78,7 @@ export const HISTORY_SEED = [
     approximateDate: true,
     location: 'Cameroon',
     description:
-      'According to the founder’s notes, Bearl Darwin Smalldridge (1928–2016) was commissioned by WWMI as the first missionary to Cameroon in the 1960s. He and his wife, Virginia Smalldridge, moved to Cameroon after earlier mission work in the Bahamas and Liberia during the 1950s and 1960s.',
+      'Bearl Darwin Smalldridge (1928–2016) was commissioned by WWMI in the 1960s as its first missionary to Cameroon. Together with his wife, Virginia Smalldridge, he relocated to Cameroon after earlier missionary service in the Bahamas and Liberia during the 1950s and 1960s.',
     people: ['Bearl Darwin Smalldridge', 'Virginia Smalldridge'],
     order: 10,
     source: NOTES,
@@ -88,7 +94,7 @@ export const HISTORY_SEED = [
     title: 'Churches established',
     location: 'West and East Cameroon',
     description:
-      'The notes state that Bearl and Virginia Smalldridge established over 50 churches across West and East Cameroon.',
+      'Bearl and Virginia Smalldridge established more than 50 churches across West and East Cameroon.',
     people: ['Bearl Darwin Smalldridge', 'Virginia Smalldridge'],
     order: 20,
     source: NOTES,
@@ -103,7 +109,7 @@ export const HISTORY_SEED = [
     year: 1969,
     location: 'Mupundu-Muyuka',
     description:
-      'The notes state that the Smalldridges founded the World Wide Missions Secondary School in Mupundu-Muyuka in 1969, and served as proprietors of the school for more than five years.',
+      'In 1969 the Smalldridges founded the World Wide Missions Secondary School in Mupundu-Muyuka, and they served as its proprietors for more than five years.',
     people: ['Bearl Darwin Smalldridge', 'Virginia Smalldridge'],
     order: 30,
     source: NOTES,
@@ -121,7 +127,7 @@ export const HISTORY_SEED = [
     dateLabel: 'Returned to Cameroon in 2008',
     year: 2008,
     description:
-      'The notes state that Jonathan Smalldridge returned to Cameroon in 2008 to continue his father’s mission and became Director of World Wide Missions Cameroon.',
+      'Jonathan Smalldridge returned to Cameroon in 2008 to continue his father’s mission and became Director of World Wide Missions Cameroon.',
     people: ['Jonathan Smalldridge'],
     order: 10,
     source: NOTES,
@@ -133,7 +139,7 @@ export const HISTORY_SEED = [
     section: 'cameroon-leadership',
     title: 'Rev. Ebai Aloysius',
     subtitle: 'First official WWMC Superintendent',
-    description: 'Identified in the founder’s notes as the first official superintendent of World Wide Missions Cameroon (WWMC).',
+    description: 'Rev. Ebai Aloysius was the first official superintendent of World Wide Missions Cameroon (WWMC).',
     people: ['Rev. Ebai Aloysius'],
     order: 20,
     source: NOTES,
@@ -147,7 +153,7 @@ export const HISTORY_SEED = [
     title: 'Rev. Anang Christopher Fang',
     subtitle: 'Superintendent, World Wide Missions Cameroon',
     dateLabel: 'Present',
-    description: 'Identified in the founder’s notes as the present, or second, official superintendent of World Wide Missions Cameroon (WWMC).',
+    description: 'Rev. Anang Christopher Fang is the present, and second, official superintendent of World Wide Missions Cameroon (WWMC).',
     people: ['Rev. Anang Christopher Fang'],
     order: 30,
     source: NOTES,
@@ -164,7 +170,7 @@ export const HISTORY_SEED = [
     subtitle: 'CEO of World-Wide Missions',
     dateLabel: '1985–2021',
     description:
-      'The notes state that Rev. Fred M. Johnson served for 36 years (1985–2021) as CEO of World-Wide Missions and directed support for churches and humanitarian ministries in over 50 nations, including Christian orphanages, schools, pastoral colleges, AIDS ministries, disaster relief and the provision of food, clothing and medicine.',
+      'Rev. Fred M. Johnson served as CEO of World-Wide Missions for 36 years, from 1985 to 2021. He directed support for churches and humanitarian ministries in more than 50 nations, including Christian orphanages, schools, pastoral colleges, AIDS ministries, disaster relief and the provision of food, clothing and medicine.',
     people: ['Rev. Fred M. Johnson'],
     imageAlt: 'Portrait of Rev. Fred M. Johnson',
     order: 10,
@@ -180,7 +186,7 @@ export const HISTORY_SEED = [
     section: 'international-growth',
     title: 'Expansion to other countries',
     description:
-      'The notes state that mission work expanded to other countries, including Uganda, Kenya, India and the Philippines, after the Smalldridges had served as proprietors of the secondary school for more than five years.',
+      'After the Smalldridges had served as proprietors of the secondary school for more than five years, mission work expanded to other countries, including Uganda, Kenya, India and the Philippines.',
     order: 10,
     source: NOTES,
     reviewStatus: CONFIRM,

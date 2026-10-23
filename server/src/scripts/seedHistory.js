@@ -6,6 +6,17 @@
 //                                            script reaches and what it contains
 //   npm run seed:history:publish             publish seed entries that exist but
 //                                            are still DRAFT (explicit opt-in)
+//   npm run seed:history:check-text          READ-ONLY: show which stored texts
+//                                            would be upgraded to the rewritten wording
+//   npm run seed:history:update-text         apply those text upgrades (see below)
+//
+// update-text: the normal run never overwrites, so entries seeded earlier still
+// hold the earlier wording. update-text sets ONLY the text fields title,
+// subtitle, description and dateLabel, ONLY on seed entries that already exist,
+// and ONLY where the stored value still equals the earlier seed wording exactly
+// (historySeedLegacy.js). A text edited in Admin → History is left alone and
+// reported. It never creates or deletes entries and never touches images, status,
+// order, section, people, key or the private review fields.
 //
 // Safe to re-run: entries are matched by `key` and only INSERTED when missing —
 // anything already in the database (including edits made in the admin, and the
@@ -18,6 +29,7 @@ import mongoose from 'mongoose';
 import { connectDB } from '../config/db.js';
 import { HistoryEvent, Person } from '../models/index.js';
 import { HISTORY_SEED } from './historySeedData.js';
+import { LEGACY_TEXT } from './historySeedLegacy.js';
 
 export const SEED_KEYS = HISTORY_SEED.map((e) => e.key);
 
@@ -70,16 +82,87 @@ export function describeState(state) {
   return lines;
 }
 
+export const TEXT_FIELDS = ['title', 'subtitle', 'description', 'dateLabel'];
+const SEED_BY_KEY = new Map(HISTORY_SEED.map((e) => [e.key, e]));
+const sameText = (a, b) => String(a ?? '').trim() === String(b ?? '').trim();
+
+// Pure: decides, per seed entry, what an update-text run would do. `docs` are
+// stored rows ({ key, ...text fields }). Returns
+//   updates:  [{ key, set: { field: newText }, expect: { field: storedText } }]
+//   upToDate: keys whose text already equals the current seed
+//   edited:   [{ key, fields }] stored text differs from BOTH the current and the
+//             earlier seed wording (edited in the admin) - left unchanged
+//   missing:  seed keys with no stored entry (never created by this mode)
+export function planTextUpdates(docs) {
+  const byKey = new Map(docs.filter((d) => d.key).map((d) => [d.key, d]));
+  const plan = { updates: [], upToDate: [], edited: [], missing: [] };
+  for (const seed of HISTORY_SEED) {
+    const doc = byKey.get(seed.key);
+    if (!doc) { plan.missing.push(seed.key); continue; }
+    const set = {};
+    const expect = {};
+    const editedFields = [];
+    for (const field of TEXT_FIELDS) {
+      if (sameText(doc[field], seed[field])) continue; // already current
+      const legacy = LEGACY_TEXT[seed.key]?.[field];
+      if (legacy !== undefined && sameText(doc[field], legacy)) {
+        set[field] = seed[field] ?? '';
+        expect[field] = doc[field];
+      } else {
+        editedFields.push(field);
+      }
+    }
+    if (Object.keys(set).length) plan.updates.push({ key: seed.key, set, expect });
+    if (editedFields.length) plan.edited.push({ key: seed.key, fields: editedFields });
+    if (!Object.keys(set).length && !editedFields.length) plan.upToDate.push(seed.key);
+  }
+  return plan;
+}
+
+export function describeTextPlan(plan) {
+  const lines = [
+    `Text updates available: ${plan.updates.length} entr${plan.updates.length === 1 ? 'y' : 'ies'}` +
+      (plan.updates.length ? ` (${plan.updates.map((u) => `${u.key}: ${Object.keys(u.set).join('+')}`).join('; ')})` : '') + '.',
+    `Already on the current wording: ${plan.upToDate.length}.`,
+  ];
+  if (plan.edited.length) {
+    lines.push(`Left unchanged because the text was edited in the admin (or differs from every known seed version): ${plan.edited.map((e) => `${e.key} [${e.fields.join(', ')}]`).join('; ')}.`);
+  }
+  if (plan.missing.length) lines.push(`Seed entries not present in this database (not created by this mode): ${plan.missing.join(', ')}.`);
+  return lines;
+}
+
 async function readState() {
   return summarizeState(await HistoryEvent.find({}).select('key status').lean());
 }
 
-// mode: 'insert' | 'draft' | 'check' | 'publish'. The database connection is the
+// mode: 'insert' | 'draft' | 'check' | 'publish' | 'check-text' | 'update-text'. The database connection is the
 // caller's job, so this can be tested with the models mocked.
 export async function runSeed({ mode = 'insert', log = console.log } = {}) {
   if (mode === 'check') {
     describeState(await readState()).forEach((l) => log(`[seed:history] ${l}`));
     log('[seed:history] Read-only check: nothing was changed.');
+    return;
+  }
+
+  if (mode === 'check-text' || mode === 'update-text') {
+    const docs = await HistoryEvent.find({ key: { $in: SEED_KEYS } }).select(`key ${TEXT_FIELDS.join(' ')}`).lean();
+    const plan = planTextUpdates(docs);
+    if (mode === 'update-text') {
+      let applied = 0;
+      for (const u of plan.updates) {
+        // Matching the stored text in the filter means a concurrent admin edit
+        // makes the update a no-op instead of overwriting it.
+        const res = await HistoryEvent.updateOne({ key: u.key, ...u.expect }, { $set: u.set });
+        if ((res.modifiedCount ?? res.nModified ?? 0) > 0) applied++;
+        else log(`[seed:history] ${u.key}: changed since it was read - skipped.`);
+      }
+      log(`[seed:history] updated the text of ${applied} entr${applied === 1 ? 'y' : 'ies'}.`);
+      describeTextPlan(planTextUpdates(await HistoryEvent.find({ key: { $in: SEED_KEYS } }).select(`key ${TEXT_FIELDS.join(' ')}`).lean())).forEach((l) => log(`[seed:history] ${l}`));
+    } else {
+      describeTextPlan(plan).forEach((l) => log(`[seed:history] ${l}`));
+      log('[seed:history] Read-only check: nothing was changed.');
+    }
     return;
   }
 
@@ -130,12 +213,14 @@ export async function runSeed({ mode = 'insert', log = console.log } = {}) {
 
 export function modeFromArgs(argv) {
   const flags = argv.filter((a) => a.startsWith('--'));
-  const known = ['--draft', '--check', '--publish-seeded'];
+  const known = ['--draft', '--check', '--publish-seeded', '--check-text', '--update-text'];
   const unknown = flags.filter((f) => !known.includes(f));
   if (unknown.length) throw new Error(`Unknown option(s): ${unknown.join(', ')}. Allowed: ${known.join(', ')}.`);
-  if (flags.length > 1) throw new Error('Use only one of --draft, --check, --publish-seeded.');
+  if (flags.length > 1) throw new Error('Use only one of --draft, --check, --publish-seeded, --check-text, --update-text.');
   if (flags[0] === '--check') return 'check';
   if (flags[0] === '--publish-seeded') return 'publish';
+  if (flags[0] === '--check-text') return 'check-text';
+  if (flags[0] === '--update-text') return 'update-text';
   if (flags[0] === '--draft') return 'draft';
   return 'insert';
 }

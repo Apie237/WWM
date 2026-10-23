@@ -16,6 +16,8 @@
     "seed:history": "node src/scripts/seedHistory.js",
     "seed:history:check": "node src/scripts/seedHistory.js --check",
     "seed:history:publish": "node src/scripts/seedHistory.js --publish-seeded",
+    "seed:history:check-text": "node src/scripts/seedHistory.js --check-text",
+    "seed:history:update-text": "node src/scripts/seedHistory.js --update-text",
     "test": "node --test \"src/__tests__/**/*.test.js\""
   },
   "dependencies": {
