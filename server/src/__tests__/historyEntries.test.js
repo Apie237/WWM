@@ -246,7 +246,7 @@ describe('supplied founder content integrity', () => {
       }
     }
   });
-  test('attribution stays in the separate source line and the private review fields', () => {
+  test('provenance is preserved as internal data (the source field and the private review fields), not in the narrative', () => {
     for (const e of HISTORY_SEED) assert.ok(e.source, e.key);
   });
   test('leadership order follows the supplied succession only', () => {

@@ -175,3 +175,42 @@ test('no image → the fallback is rendered, and no empty frame is left behind',
   assert.equal(out, '<p>fallback</p>')
   assert.equal(html(h(mod.HistoryImage.default, { image: null })), '')
 })
+
+// ---- no public "Source:" labels ---------------------------------------------
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+test('no History component renders the internal source field, even when an entry has one', async () => {
+  const src = { source: 'Founder-supplied records' }
+  const full = (extra) => entry({ imageUrl: URL1, imageAlt: 'Alt text', imageCaption: 'Caption text', subtitle: 'Sub', dateLabel: '1960s', location: 'Cameroon', ...src, ...extra })
+  const History = (await vite.ssrLoadModule('/src/pages/History.jsx')).default
+  const outputs = {
+    feature: html(h(mod.Feature, { entry: full() })),
+    timeline: html(h(mod.Timeline, { entries: [full(), full({ _id: '2', imageUrl: undefined })] })),
+    records: html(h(mod.Records, { entries: [full({ section: 'records' })] })),
+  }
+  for (const [name, out] of Object.entries(outputs)) {
+    assert.ok(!/Source:/i.test(out), `${name} shows a Source label`)
+    assert.ok(!out.includes('Founder-supplied'), `${name} shows the source text`)
+    // …while the rest of the entry is intact
+    assert.ok(out.includes('Entry title') && out.includes('Body text.'), `${name} lost the narrative`)
+  }
+  assert.ok(outputs.feature.includes('alt="Alt text"') && outputs.feature.includes('Caption text') && outputs.feature.includes('Sub') && outputs.feature.includes('1960s'))
+  assert.ok(outputs.timeline.includes('alt="Alt text"'))
+  assert.ok(typeof History === 'function')
+})
+
+test('the History feature source code has no "Source:" label and never reads entry.source', () => {
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+  const files = [
+    'pages/History.jsx',
+    ...fs.readdirSync(path.join(root, 'components/history')).filter((f) => f.endsWith('.jsx')).map((f) => `components/history/${f}`),
+    'components/home/HeritageBand.jsx',
+  ]
+  for (const f of files) {
+    const code = fs.readFileSync(path.join(root, f), 'utf8')
+    assert.ok(!/Source:/.test(code), `${f} contains a "Source:" label`)
+    assert.ok(!/\b(e|entry|item)\.source\b/.test(code), `${f} reads the source field`)
+  }
+})

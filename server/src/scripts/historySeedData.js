@@ -6,8 +6,9 @@
 //  - Only facts supplied by the founder are used; nothing is added or inferred.
 //  - Public wording is written as the organization's own institutional history,
 //    in plain formal English. It carries no research-note phrasing ("according
-//    to…", "the notes state…"); provenance lives in the separate `source` line
-//    and in the PRIVATE review fields below, never inside the narrative.
+//    to…", "the notes state…"); provenance lives in the internal `source` field
+//    (never displayed on the public page) and in the PRIVATE review fields
+//    below, never inside the narrative.
 //  - `reviewStatus` / `reviewNote` are PRIVATE and list exactly what still needs
 //    founder confirmation. They are never returned by the public API.
 //  - Rewording must not change a fact. Text that was reworded is listed in

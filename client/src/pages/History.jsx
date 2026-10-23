@@ -131,7 +131,6 @@ export default function History() {
                       <h3 className="mt-1 text-lg font-bold text-wwm-navy">{e.title}</h3>
                       {e.location && <p className="text-sm text-wwm-neutral-600">{e.location}</p>}
                       <p className="mt-3 text-base leading-relaxed text-wwm-neutral-900">{e.description}</p>
-                      {e.source && <p className="mt-3 text-xs text-wwm-neutral-600">Source: {e.source}</p>}
                     </Reveal>
                   ))}
                 </ol>
@@ -176,7 +175,6 @@ export default function History() {
                       {e.dateLabel && <p className="text-xs font-semibold uppercase tracking-[0.2em] text-wwm-gold">{e.dateLabel}</p>}
                       <h3 className="mt-1 text-lg font-bold text-wwm-navy">{e.title}</h3>
                       <p className="mt-3 text-base leading-relaxed text-wwm-neutral-900">{e.description}</p>
-                      {e.source && <p className="mt-3 text-xs text-wwm-neutral-600">Source: {e.source}</p>}
                     </Reveal>
                   ),
                 )}

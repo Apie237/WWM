@@ -7,9 +7,10 @@ import { CONTENT_STATUSES, HISTORY_SECTIONS, HISTORY_ENTRY_TYPES, HISTORY_REVIEW
 //
 // Uncertainty is preserved, not resolved: `year` is only a sort/anchor value;
 // what visitors see is `dateLabel` (free text such as "1960s" or "1985–2021")
-// plus `approximateDate`. `source` is the PUBLIC attribution line (e.g.
-// "Founder-supplied notes"). `reviewStatus`, `reviewNote` and `notes` are
-// PRIVATE editorial fields and are stripped by the public API.
+// plus `approximateDate`. `source` is an internal provenance note (e.g.
+// "Founder-supplied notes"): it is stored and editable in the admin but the
+// public History page never displays it. `reviewStatus`, `reviewNote` and
+// `notes` are PRIVATE editorial fields and are stripped by the public API.
 const historyEventSchema = new Schema(
   {
     // Stable identifier used only by the seed script so it can be re-run safely.

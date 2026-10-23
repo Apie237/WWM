@@ -99,6 +99,21 @@ describe('the rewritten seed text', () => {
   });
 });
 
+describe('internal source information is preserved (only its public display was removed)', () => {
+  test('every seed entry still carries its internal source value, unchanged', () => {
+    for (const e of HISTORY_SEED) {
+      assert.equal(e.source, e.section === 'records' ? 'Founder-supplied records' : 'Founder-supplied notes', e.key);
+    }
+  });
+  test('neither the text update nor its planner ever includes `source` in what it writes', async () => {
+    const plan = planTextUpdates(rows);
+    for (const u of plan.updates) assert.ok(!('source' in u.set) && !('source' in u.expect));
+    const before = snapshot().map((r) => r.source);
+    await runSeed({ mode: 'update-text', ...silent });
+    assert.deepEqual(rows.map((r) => r.source), before);
+  });
+});
+
 describe('update-text: planning', () => {
   test('rows holding the earlier wording are planned for update; nothing else', () => {
     const plan = planTextUpdates(rows);

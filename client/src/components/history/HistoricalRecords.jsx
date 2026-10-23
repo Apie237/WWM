@@ -25,7 +25,6 @@ export default function HistoricalRecords({ entries, notice }) {
             {entry.description && (
               <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-wwm-neutral-900">{entry.description}</p>
             )}
-            {entry.source && <p className="mt-4 text-xs text-wwm-neutral-600">Source: {entry.source}</p>}
           </Reveal>
         ))}
       </div>

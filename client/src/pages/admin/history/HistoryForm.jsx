@@ -194,7 +194,7 @@ export default function HistoryForm() {
         )}
       </fieldset>
 
-      <FormField label="Source line (public)" htmlFor="source" hint="Shown under the entry, e.g. “Founder-supplied notes”. Do not imply outside verification.">
+      <FormField label="Source (internal — not shown on the public site)" htmlFor="source" hint="Where this information came from, for the editorial team, e.g. “Founder-supplied notes”. It is kept with the entry but never displayed to visitors.">
         <input id="source" maxLength={500} className={inputClasses} value={form.source} onChange={(e) => update('source', e.target.value)} />
       </FormField>
       <FormField label="Display order" htmlFor="order" hint="Lower numbers appear first within the section.">

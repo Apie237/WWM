@@ -55,7 +55,6 @@ export default function HistoryFeature({ entry, reverse = false, large = false }
             <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" /> {entry.location}
           </p>
         )}
-        {entry.source && <p className="mt-3 text-xs text-wwm-neutral-600">Source: {entry.source}</p>}
       </div>
     </Reveal>
   )

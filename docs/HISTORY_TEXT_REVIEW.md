@@ -92,7 +92,7 @@ Unchanged on purpose: `brazil-pending` (public placeholder already neutral), and
 ## Editorial rules applied
 
 - Removed every research-note phrase from the public text ("According to the founder's notes", "The notes state", "Identified in the founder's notes", "They cite", "The founder's notes identify"), and the intro sentence saying the account "was supplied by the founder".
-- Provenance was **not** deleted: it stays in each entry's separate *Source* line and in the private review fields.
+- Provenance was **not** deleted: it stays in each entry's internal *Source* field and in the private review fields (the public page no longer displays the Source field).
 - Dates: "Born February 26, 1897" → "Born 26 February 1897" (day-month-year, as in the decree entry); "36 years (1985–2021)" → "36 years, from 1985 to 2021"; "over" → "more than". No approximate date was made exact; "1960s" and "during the 1950s and 1960s" are unchanged.
 - The organization's names were **not** normalised: "World-Wide Missions" (hyphenated), "World Wide Missions" and "WWMI" are used exactly where the supplied material used them, because the name transition is itself an open question (see below).
 
@@ -114,5 +114,5 @@ Unchanged on purpose: `brazil-pending` (public placeholder already neutral), and
 
 ## Left alone deliberately (your call)
 
-- The *Source* line under each entry ("Founder-supplied notes" / "Founder-supplied records") — this is attribution, kept so nothing implies outside verification. It can be reworded in Admin → History if you prefer.
+- The *Source* field of each entry ("Founder-supplied notes" / "Founder-supplied records") is kept as an internal provenance note. It is no longer displayed on the public History page (the "Source: …" lines were removed from every History component), and it is still editable in Admin → History.
 - The fixed notices in `client/src/pages/History.jsx` (the records notice and the leadership-succession note). They are page text, not seed data, and they keep historical addresses from being read as current.

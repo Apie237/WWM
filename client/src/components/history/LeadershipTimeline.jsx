@@ -44,7 +44,6 @@ export default function LeadershipTimeline({ entries, note }) {
                 <h3 className="mt-1 text-lg font-bold text-wwm-navy sm:text-xl">{entry.title}</h3>
                 {entry.subtitle && <p className="text-sm font-semibold uppercase tracking-wide text-wwm-neutral-600">{entry.subtitle}</p>}
                 {entry.description && <p className="mt-2 max-w-xl text-base leading-relaxed text-wwm-neutral-900">{entry.description}</p>}
-                {entry.source && <p className="mt-2 text-xs text-wwm-neutral-600">Source: {entry.source}</p>}
               </div>
             </Reveal>
           </li>
