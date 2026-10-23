@@ -20,6 +20,8 @@ before(async () => {
   mod = {
     Feature: (await vite.ssrLoadModule('/src/components/history/HistoryFeature.jsx')).default,
     Timeline: (await vite.ssrLoadModule('/src/components/history/LeadershipTimeline.jsx')).default,
+    Records: (await vite.ssrLoadModule('/src/components/history/HistoricalRecords.jsx')).default,
+    HistoryImage: { default: (await vite.ssrLoadModule('/src/components/history/HistoryImage.jsx')).default, ...(await vite.ssrLoadModule('/src/lib/historyImage.js')) },
     Photo: (await vite.ssrLoadModule('/src/components/history/EntryPhoto.jsx')).default,
     Upload: (await vite.ssrLoadModule('/src/components/admin/cms/ImageUpload.jsx')).default,
     history: await vite.ssrLoadModule('/src/lib/history.js'),
@@ -37,8 +39,8 @@ test('origins / international-leadership feature shows the uploaded image with a
   assert.match(out, /<img /)
   assert.ok(out.includes('alt="A young couple"'))
   assert.ok(out.includes('Early years'))
-  assert.ok(out.includes('w_800,c_limit/wwm/history/'), 'uses a width-limited Cloudinary rendition')
-  assert.match(out, /srcSet="[^"]*w_480/)
+  assert.ok(out.includes('w_960,c_limit/wwm/history/'), 'uses a width-limited Cloudinary rendition')
+  assert.match(out, /srcSet="[^"]*w_640/)
 })
 
 test('feature with no image but photo metadata shows the labelled placeholder; with nothing it is text only', () => {
@@ -57,7 +59,7 @@ test('a legacy (non-Cloudinary) link is used as-is, without a srcset', () => {
 
 test('Cameroon leadership portrait uses the entry photograph, else a single linked person’s photo, else an icon', () => {
   const own = html(h(mod.Timeline, { entries: [entry({ imageUrl: URL1, imageAlt: 'Pastor portrait' })] }))
-  assert.ok(own.includes('alt="Pastor portrait"') && own.includes('w_300,c_limit'))
+  assert.ok(own.includes('alt="Pastor portrait"') && own.includes('w_480,c_limit'))
   const person = html(h(mod.Timeline, { entries: [entry({ people: [{ displayName: 'Pastor A', photoUrl: 'https://example.org/a.jpg' }] })] }))
   assert.ok(person.includes('src="https://example.org/a.jpg"') && person.includes('alt="Pastor A"'))
   const two = html(h(mod.Timeline, { entries: [entry({ people: [{ displayName: 'A', photoUrl: 'https://example.org/a.jpg' }, { displayName: 'B', photoUrl: 'https://example.org/b.jpg' }] })] }))
@@ -114,4 +116,62 @@ test('read-only role: controls are disabled and the reason is stated', () => {
   const out = html(h(mod.Upload, { id: 'imageUrl', kind: 'history', value: { url: URL1, publicId: '' }, onChange() {}, disabled: true }))
   assert.ok(out.includes('Your role can view this photograph but not change it.'))
   assert.match(out, /<button[^>]*disabled=""[^>]*>[^<]*(<svg.*?<\/svg>)?\s*Replace photograph/s)
+})
+
+// ---- layout / sizing -------------------------------------------------------
+const imgTag = (out) => /<img [^>]*>/.exec(out)?.[0] ?? ''
+
+test('every History image variant shows the whole photograph: object-contain, auto height, never object-cover', () => {
+  for (const variant of Object.keys(mod.HistoryImage.HISTORY_IMAGE_VARIANTS)) {
+    const tag = imgTag(html(h(mod.HistoryImage.default, { image: { url: URL1, alt: 'x' }, variant })))
+    assert.match(tag, /object-contain/, variant)
+    assert.match(tag, /\bh-auto\b/, variant)
+    assert.match(tag, /\bw-full\b/, variant)
+    assert.ok(!/object-cover|\bh-full\b/.test(tag), `${variant} must not crop or force a height`)
+    assert.match(tag, /max-h-/, `${variant} has a height ceiling`)
+  }
+})
+
+test('the framed mat gives spare room a neutral background and padding', () => {
+  const out = html(h(mod.HistoryImage.default, { image: { url: URL1, alt: 'x' }, variant: 'feature' }))
+  assert.match(out, /bg-wwm-neutral-100 p-1\.5/)
+})
+
+test('portraits align to the top; the timeline photo column is much larger than the old 6–8rem square', () => {
+  const out = html(h(mod.Timeline, { entries: [entry({ imageUrl: URL1, imageAlt: 'Pastor portrait' })] }))
+  assert.match(imgTag(out), /object-top/)
+  assert.match(out, /min-\[420px\]:w-40/) // 10rem at phone-landscape
+  assert.match(out, /sm:w-48/) // 12rem
+  assert.match(out, /lg:w-56/) // 14rem
+  assert.ok(!/h-24 w-24|sm:h-32 sm:w-32/.test(imgTag(out)))
+})
+
+test('timeline rows without a photo keep the small icon but share the same column width', () => {
+  const out = html(h(mod.Timeline, { entries: [entry()] }))
+  assert.ok(!out.includes('<img '))
+  assert.match(out, /min-\[420px\]:w-40 sm:w-48 lg:w-56/)
+  assert.match(out, /Photograph of Entry title coming soon/)
+})
+
+test('features give the photograph the wider column, mirrored when the layout is reversed', () => {
+  const e = entry({ imageUrl: URL1, imageAlt: 'x' })
+  assert.match(html(h(mod.Feature, { entry: e })), /lg:grid-cols-\[1\.2fr_1fr\]/)
+  assert.match(html(h(mod.Feature, { entry: e, reverse: true })), /lg:grid-cols-\[1fr_1\.2fr\]/)
+  assert.match(html(h(mod.Feature, { entry: e, large: true })), /lg:grid-cols-\[1\.35fr_1fr\]/)
+  assert.ok(!/lg:grid-cols/.test(html(h(mod.Feature, { entry: entry() }))), 'text-only entries stay single column')
+})
+
+test('records show only a photograph uploaded for that record (never a linked person’s portrait)', () => {
+  const withOwn = html(h(mod.Records, { entries: [entry({ section: 'records', imageUrl: URL1, imageAlt: 'Scanned letter', imageCaption: 'Letter, page 1' })] }))
+  assert.ok(withOwn.includes('alt="Scanned letter"') && withOwn.includes('Letter, page 1') && /max-h-\[28rem\]/.test(withOwn))
+  const borrowed = html(h(mod.Records, { entries: [entry({ section: 'records', people: [{ displayName: 'A', photoUrl: 'https://example.org/a.jpg' }] })] }))
+  assert.ok(!borrowed.includes('<img '))
+  const none = html(h(mod.Records, { entries: [entry({ section: 'records' })] }))
+  assert.ok(!none.includes('<img ') && !none.includes('<figure'))
+})
+
+test('no image → the fallback is rendered, and no empty frame is left behind', () => {
+  const out = html(h(mod.HistoryImage.default, { image: null, variant: 'card', fallback: h('p', null, 'fallback') }))
+  assert.equal(out, '<p>fallback</p>')
+  assert.equal(html(h(mod.HistoryImage.default, { image: null })), '')
 })

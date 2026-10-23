@@ -5,7 +5,7 @@ import ImagePlaceholder from '../ui/ImagePlaceholder.jsx'
 import EmptyState from '../ui/EmptyState.jsx'
 import PioneerCard from '../content/PioneerCard.jsx'
 import { getPeople, getHistory } from '../../services/api.js'
-import { imageSrc, imageSrcSet } from '../../lib/images.js'
+import HistoryImage from '../history/HistoryImage.jsx'
 
 // Heritage/legacy narrative + pioneer profiles, on the cream heritage
 // surface (docs/DESIGN_SPEC.md §3, §8). Pioneer profiles are read from the
@@ -15,7 +15,6 @@ import { imageSrc, imageSrcSet } from '../../lib/images.js'
 export default function HeritageBand() {
   const [pioneers, setPioneers] = useState(null)
   const [photo, setPhoto] = useState(null)
-  const [photoBroken, setPhotoBroken] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -62,22 +61,12 @@ export default function HeritageBand() {
             Our Story
           </CTAButton>
         </div>
-        {photo && !photoBroken ? (
-          <figure>
-            <img
-              src={imageSrc(photo.url, 800)}
-              srcSet={imageSrcSet(photo.url, [480, 800, 1200])}
-              sizes="(min-width: 1024px) 560px, 100vw"
-              alt={photo.alt}
-              loading="lazy"
-              onError={() => setPhotoBroken(true)}
-              className="aspect-[4/3] w-full border border-wwm-neutral-300 bg-wwm-white object-cover object-top"
-            />
-            {photo.caption && <figcaption className="mt-2 text-xs text-wwm-neutral-600">{photo.caption}</figcaption>}
-          </figure>
-        ) : (
-          <ImagePlaceholder label="Archival heritage photograph" />
-        )}
+        <HistoryImage
+          image={photo}
+          variant="feature"
+          caption={photo?.caption}
+          fallback={<ImagePlaceholder label="Archival heritage photograph" />}
+        />
       </div>
 
       <div className="mt-12 border-t border-wwm-neutral-300 pt-10">

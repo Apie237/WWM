@@ -1,46 +1,40 @@
-import { useState } from 'react'
 import { MapPin } from 'lucide-react'
 import ImagePlaceholder from '../ui/ImagePlaceholder.jsx'
-import { imageSrc, imageSrcSet } from '../../lib/images.js'
+import HistoryImage from './HistoryImage.jsx'
 import { entryImage, placeholderLabel } from '../../lib/history.js'
 import { toParagraphs } from '../../lib/format.js'
 import Reveal from './Reveal.jsx'
 
 // A single history entry presented as a photograph beside its text. Used for
-// the origins, Cameroon and international-leadership features. Images keep
-// their frame proportions (fixed aspect box, object-cover) so portraits and
-// group photos neither stretch nor shift the layout while loading; a missing
-// or broken image falls back to a labelled placeholder.
+// the origins, Cameroon and international-leadership features. The photograph
+// gets the wider column (it is the point of these entries) and is shown in
+// full via HistoryImage; a missing or broken image falls back to a labelled
+// placeholder.
 export default function HistoryFeature({ entry, reverse = false, large = false }) {
   const image = entryImage(entry)
-  const [broken, setBroken] = useState(false)
   const paragraphs = toParagraphs(entry.description)
   // A photograph slot (image or labelled placeholder) is shown only for entries
   // that have a photo or are meant to have one (alt text/caption set in the CMS);
   // other entries read as text so the page isn't filled with empty frames.
   const wantsPhoto = Boolean(image || entry.imageAlt || entry.imageCaption)
+  // The photograph column is the wider one; when the layout is mirrored the
+  // template is mirrored with it so the photo still gets the larger share.
+  // (Full class names, so Tailwind can see them.)
+  const columns = large
+    ? reverse ? 'lg:grid-cols-[1fr_1.35fr]' : 'lg:grid-cols-[1.35fr_1fr]'
+    : reverse ? 'lg:grid-cols-[1fr_1.2fr]' : 'lg:grid-cols-[1.2fr_1fr]'
 
   return (
-    <Reveal className={`grid items-center gap-8 lg:gap-14 ${wantsPhoto ? (large ? 'lg:grid-cols-[1.1fr_1fr]' : 'lg:grid-cols-2') : 'max-w-3xl'}`}>
+    <Reveal className={`grid items-center gap-8 lg:gap-14 ${wantsPhoto ? columns : 'max-w-3xl'}`}>
       {wantsPhoto && (
-      <figure className={reverse ? 'lg:order-2' : ''}>
-        {image && !broken ? (
-          <img
-            src={imageSrc(image.url, 800)}
-            srcSet={imageSrcSet(image.url, [480, 800, 1200])}
-            sizes="(min-width: 1024px) 560px, 100vw"
-            alt={image.alt}
-            loading="lazy"
-            onError={() => setBroken(true)}
-            className={`w-full border border-wwm-neutral-300 bg-wwm-white object-cover object-top ${large ? 'aspect-[4/3]' : 'aspect-[4/3]'}`}
+        <div className={reverse ? 'lg:order-2' : ''}>
+          <HistoryImage
+            image={image}
+            variant="feature"
+            caption={entry.imageCaption}
+            fallback={<ImagePlaceholder label={placeholderLabel(entry)} />}
           />
-        ) : (
-          <ImagePlaceholder label={placeholderLabel(entry)} />
-        )}
-        {entry.imageCaption && image && !broken && (
-          <figcaption className="mt-2 text-xs text-wwm-neutral-600">{entry.imageCaption}</figcaption>
-        )}
-      </figure>
+        </div>
       )}
 
       <div>

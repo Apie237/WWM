@@ -1,4 +1,5 @@
 import { Archive } from 'lucide-react'
+import EntryPhoto from './EntryPhoto.jsx'
 import Reveal from './Reveal.jsx'
 
 // Restrained panel for historical addresses and the authorization statement.
@@ -16,6 +17,7 @@ export default function HistoricalRecords({ entries, notice }) {
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         {entries.map((entry) => (
           <Reveal as="article" key={entry._id} className="border border-wwm-neutral-300 bg-wwm-white p-6">
+            <EntryPhoto entry={entry} variant="record" ownOnly />
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-wwm-gold">
               {entry.dateLabel || 'Historical record'}
             </p>
