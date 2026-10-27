@@ -6,6 +6,10 @@
 //                                            script reaches and what it contains
 //   npm run seed:history:publish             publish seed entries that exist but
 //                                            are still DRAFT (explicit opt-in)
+//   npm run seed:history:unpublish-retired   set entries that were REMOVED from the
+//                                            seed (e.g. the Brazil placeholder) back to
+//                                            DRAFT so they leave the public page; never
+//                                            deletes anything, reversible in the admin
 //   npm run seed:history:check-text          READ-ONLY: show which stored texts
 //                                            would be upgraded to the rewritten wording
 //   npm run seed:history:update-text         apply those text upgrades (see below)
@@ -28,7 +32,7 @@
 import mongoose from 'mongoose';
 import { connectDB } from '../config/db.js';
 import { HistoryEvent, Person } from '../models/index.js';
-import { HISTORY_SEED } from './historySeedData.js';
+import { HISTORY_SEED, RETIRED_SEED_KEYS } from './historySeedData.js';
 import { LEGACY_TEXT } from './historySeedLegacy.js';
 
 export const SEED_KEYS = HISTORY_SEED.map((e) => e.key);
@@ -58,6 +62,8 @@ export function summarizeState(docs) {
     seedMissing: SEED_KEYS.filter((k) => !byKey.has(k)),
     seedDraft: present.filter((k) => byKey.get(k).status !== 'published'),
     seedPublished: present.filter((k) => byKey.get(k).status === 'published'),
+    // Entries removed from the seed on purpose that are still public.
+    retiredPublished: RETIRED_SEED_KEYS.filter((k) => byKey.get(k)?.status === 'published'),
   };
 }
 
@@ -71,6 +77,12 @@ export function describeState(state) {
       `WARNING: ${state.seedDraft.length} seed entries exist as DRAFT, so the public page and GET /api/history do not show them:`,
       `  ${state.seedDraft.join(', ')}`,
       '  Publish them in Admin → History, or run: npm run seed:history:publish'
+    );
+  }
+  if (state.retiredPublished?.length) {
+    lines.push(
+      `NOTE: ${state.retiredPublished.join(', ')} was removed from the seed but is still PUBLISHED here.`,
+      '  Set it to Draft in Admin → History, or run: npm run seed:history:unpublish-retired'
     );
   }
   if (state.seedMissing.length && state.seedMissing.length < SEED_KEYS.length) {
@@ -136,7 +148,7 @@ async function readState() {
   return summarizeState(await HistoryEvent.find({}).select('key status').lean());
 }
 
-// mode: 'insert' | 'draft' | 'check' | 'publish' | 'check-text' | 'update-text'. The database connection is the
+// mode: 'insert' | 'draft' | 'check' | 'publish' | 'check-text' | 'update-text' | 'unpublish-retired'. The database connection is the
 // caller's job, so this can be tested with the models mocked.
 export async function runSeed({ mode = 'insert', log = console.log } = {}) {
   if (mode === 'check') {
@@ -163,6 +175,18 @@ export async function runSeed({ mode = 'insert', log = console.log } = {}) {
       describeTextPlan(plan).forEach((l) => log(`[seed:history] ${l}`));
       log('[seed:history] Read-only check: nothing was changed.');
     }
+    return;
+  }
+
+  if (mode === 'unpublish-retired') {
+    // Only the keys named in RETIRED_SEED_KEYS, and only if they are published.
+    // Status is the only field written; the entry itself is kept.
+    const res = await HistoryEvent.updateMany(
+      { key: { $in: RETIRED_SEED_KEYS }, status: 'published' },
+      { $set: { status: 'draft' } }
+    );
+    log(`[seed:history] set ${res.modifiedCount ?? 0} retired entr${(res.modifiedCount ?? 0) === 1 ? 'y' : 'ies'} (${RETIRED_SEED_KEYS.join(', ')}) back to draft; nothing was deleted.`);
+    describeState(await readState()).forEach((l) => log(`[seed:history] ${l}`));
     return;
   }
 
@@ -213,12 +237,13 @@ export async function runSeed({ mode = 'insert', log = console.log } = {}) {
 
 export function modeFromArgs(argv) {
   const flags = argv.filter((a) => a.startsWith('--'));
-  const known = ['--draft', '--check', '--publish-seeded', '--check-text', '--update-text'];
+  const known = ['--draft', '--check', '--publish-seeded', '--check-text', '--update-text', '--unpublish-retired'];
   const unknown = flags.filter((f) => !known.includes(f));
   if (unknown.length) throw new Error(`Unknown option(s): ${unknown.join(', ')}. Allowed: ${known.join(', ')}.`);
-  if (flags.length > 1) throw new Error('Use only one of --draft, --check, --publish-seeded, --check-text, --update-text.');
+  if (flags.length > 1) throw new Error('Use only one of --draft, --check, --publish-seeded, --check-text, --update-text, --unpublish-retired.');
   if (flags[0] === '--check') return 'check';
   if (flags[0] === '--publish-seeded') return 'publish';
+  if (flags[0] === '--unpublish-retired') return 'unpublish-retired';
   if (flags[0] === '--check-text') return 'check-text';
   if (flags[0] === '--update-text') return 'update-text';
   if (flags[0] === '--draft') return 'draft';

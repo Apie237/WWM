@@ -214,3 +214,18 @@ test('the History feature source code has no "Source:" label and never reads ent
     assert.ok(!/\b(e|entry|item)\.source\b/.test(code), `${f} reads the source field`)
   }
 })
+
+test('the records notice no longer attributes the records to the founder but still says they are not current', () => {
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+  const code = fs.readFileSync(path.join(root, 'pages/History.jsx'), 'utf8')
+  assert.ok(!/supplied by the founder/i.test(code))
+  assert.ok(code.includes('These details are historical.'))
+  assert.ok(code.includes('not presented as current addresses or as a statement of current legal status unless separately confirmed'))
+})
+
+test('no Brazil text is hardcoded anywhere in the public History code', () => {
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+  for (const f of ['pages/History.jsx', ...fs.readdirSync(path.join(root, 'components/history')).map((n) => `components/history/${n}`)]) {
+    assert.ok(!/brazil/i.test(fs.readFileSync(path.join(root, f), 'utf8')), f)
+  }
+})

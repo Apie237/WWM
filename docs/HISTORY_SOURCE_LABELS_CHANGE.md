@@ -11,6 +11,6 @@
 
 **Not changed:** narratives, titles, subtitles, captions, dates, section, order, status, IDs, people links, image fields, schema, API, auth, uploads, Cloudinary. Edits to `HistoryEvent.js` and `historySeedData.js` are comments only.
 
-**Still visible, by design (not "Source:" labels):** the fixed notices on the History page — the records notice ("historical details supplied by the founder…") and the leadership-succession note ("…shown only as supplied…"). They keep historical addresses from being read as current. Say if you want them reworded.
+**Still visible, by design (not "Source:" labels):** the fixed notices on the History page — the records notice ("These details are historical. They are not presented as current addresses…") and the leadership-succession note ("…shown only as supplied…"). They keep historical addresses from being read as current. Say if you want them reworded.
 
 **Note:** the `source` string is still part of the public API's JSON response for an entry (the API contract was not changed); it just isn't displayed. Excluding it from the public projection would be a small server change if you want it hidden there too.

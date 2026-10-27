@@ -23,7 +23,7 @@ const NAV = [
 ]
 
 const RECORDS_NOTICE =
-  'These are historical details supplied by the founder. They are not presented as current addresses or as a statement of current legal status unless separately confirmed.'
+  'These details are historical. They are not presented as current addresses or as a statement of current legal status unless separately confirmed.'
 const LEADERSHIP_NOTE =
   'Dates and the order of succession are shown only as supplied. A complete list of appointments has not been published.'
 

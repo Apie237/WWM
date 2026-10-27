@@ -87,7 +87,7 @@ npm run seed:history:update-text    # applies it
 - Before: The notes state that mission work expanded to other countries, including Uganda, Kenya, India and the Philippines, after the Smalldridges had served as proprietors of the secondary school for more than five years.
 - After: After the Smalldridges had served as proprietors of the secondary school for more than five years, mission work expanded to other countries, including Uganda, Kenya, India and the Philippines.
 
-Unchanged on purpose: `brazil-pending` (public placeholder already neutral), and the three records `record-pasadena`, `record-cameroon`, `record-decree` (addresses and the quoted decree are shown exactly as supplied).
+Unchanged on purpose: the three records `record-pasadena`, `record-cameroon`, `record-decree` (addresses and the quoted decree are shown exactly as supplied).
 
 ## Editorial rules applied
 
@@ -108,7 +108,7 @@ Unchanged on purpose: `brazil-pending` (public placeholder already neutral), and
 8. **Basil Miller** — birth date, Church of the Nazarene ministry, and that he founded the organization that became World-Wide Missions; "approximately 200 books", "thousands of articles", 35-year career.
 9. **Smalldridge couple / school / churches** — 1960s commissioning, 1928–2016 life dates, Bahamas and Liberia service dates, "more than 50 churches" in West and East Cameroon, the 1969 founding and "more than five years" as proprietors.
 10. **Expansion** — Uganda, Kenya, India and the Philippines, and the timing relative to the school (no dates were supplied).
-11. **Brazil** — no facts were supplied; the placeholder stays a placeholder.
+11. **Brazil** — no facts were supplied; the placeholder entry has since been removed from the seed and from the public page (see `seed:history:unpublish-retired`).
 12. **Records** — whether the Pasadena address and the Muyuka headquarters / P.O. Box 44 are still in use, and the exact decree wording. They are never described as current.
 13. The intro's connective "who have shaped its work" is light editorial framing added to the earlier sentence; it adds no fact, but confirm the founder is happy with it.
 

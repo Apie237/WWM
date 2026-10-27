@@ -22,6 +22,13 @@ const NOTES = 'Founder-supplied notes';
 const RECORDS = 'Founder-supplied records';
 const CONFIRM = 'needs_confirmation';
 
+// Seed entries that were REMOVED from the seed on purpose and must not be public.
+// The seed never deletes: `npm run seed:history:unpublish-retired` sets any of
+// these that exist and are published back to DRAFT (reversible in Admin → History).
+//   brazil-pending — the "World Wide Mission Brazil" placeholder; withheld for now.
+//   To bring it back, restore it from git history or create it in Admin → History.
+export const RETIRED_SEED_KEYS = ['brazil-pending'];
+
 export const HISTORY_SEED = [
   // ---------------------------------------------------------------- introduction
   {
@@ -192,18 +199,6 @@ export const HISTORY_SEED = [
     source: NOTES,
     reviewStatus: CONFIRM,
     reviewNote: 'Confirm the countries named and the timing. No dates were supplied for any of them.',
-  },
-  {
-    key: 'brazil-pending',
-    section: 'international-growth',
-    entryType: 'pending',
-    title: 'World Wide Mission Brazil',
-    description: 'Information about World Wide Mission Brazil will be added when it is available.',
-    order: 20,
-    source: NOTES,
-    reviewStatus: CONFIRM,
-    reviewNote:
-      'The founder mentioned discovering World Wide Mission Brazil online. NO founding date, activities, leadership or relationship to WWMI was supplied — do not add any without confirmation.',
   },
 
   // --------------------------------------------------------------------- records

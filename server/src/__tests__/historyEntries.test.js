@@ -12,7 +12,7 @@ import { env } from '../config/env.js';
 import { signAdminToken } from '../services/authService.js';
 import { HistoryEvent, Person, Country, User, Organization, Ministry, CountryAdministration, AffiliatePastorsBoard } from '../models/index.js';
 import { HISTORY_SECTIONS } from '../models/enums.js';
-import { HISTORY_SEED } from '../scripts/historySeedData.js';
+import { HISTORY_SEED, RETIRED_SEED_KEYS } from '../scripts/historySeedData.js';
 import { resolvePeople, runSeed, summarizeState, modeFromArgs, SEED_KEYS } from '../scripts/seedHistory.js';
 import { isValidPublicId } from '../services/mediaService.js';
 
@@ -221,11 +221,10 @@ describe('supplied founder content integrity', () => {
     assert.match(byKey['secondary-school'].description, /World Wide Missions Secondary School/);
     assert.match(byKey['jonathan-smalldridge'].description, /World Wide Missions Cameroon/);
   });
-  test('Brazil is only a pending placeholder — no invented date, people or activities', () => {
-    const b = byKey['brazil-pending'];
-    assert.equal(b.entryType, 'pending');
-    for (const f of ['year', 'dateLabel', 'people', 'location']) assert.equal(b[f], undefined, f);
-    assert.ok(!/found(ed|ing)|since|led by|director|church|school/i.test(b.description));
+  test('the Brazil placeholder is no longer seeded and is listed as retired', () => {
+    assert.equal(byKey['brazil-pending'], undefined);
+    assert.ok(!/brazil/i.test(allText));
+    assert.deepEqual(RETIRED_SEED_KEYS, ['brazil-pending']);
   });
   test('addresses and the decree are records, are never described as current', () => {
     for (const k of ['record-pasadena', 'record-cameroon', 'record-decree']) {
@@ -351,8 +350,8 @@ describe('seed → public API chain', () => {
     await runSeed({ mode: 'insert', log: (l) => lines.push(l) });
     assert.ok(rows.every((r) => r.status === 'draft'), 'existing status is never overwritten by the normal run');
     const out = lines.join('\n');
-    assert.match(out, /created 0 new published entries; left 15 existing/);
-    assert.match(out, /WARNING: 15 seed entries exist as DRAFT/);
+    assert.match(out, /created 0 new published entries; left 14 existing/);
+    assert.match(out, /WARNING: 14 seed entries exist as DRAFT/);
     assert.match(out, /seed:history:publish/);
     assert.equal((await api('GET', '/api/history')).json.data.length, 0);
   });
@@ -374,7 +373,7 @@ describe('seed → public API chain', () => {
     const lines = [];
     await runSeed({ mode: 'check', log: (l) => lines.push(l) });
     assert.deepEqual(writes, before, 'no write calls in check mode');
-    assert.match(lines.join('\n'), /0 published, 15 draft/);
+    assert.match(lines.join('\n'), /0 published, 14 draft/);
     assert.match(lines.join('\n'), /Read-only check/);
   });
 

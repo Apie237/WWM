@@ -9,9 +9,9 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { HistoryEvent } from '../models/index.js';
-import { HISTORY_SEED } from '../scripts/historySeedData.js';
+import { HISTORY_SEED, RETIRED_SEED_KEYS } from '../scripts/historySeedData.js';
 import { LEGACY_TEXT } from '../scripts/historySeedLegacy.js';
-import { runSeed, planTextUpdates, TEXT_FIELDS } from '../scripts/seedHistory.js';
+import { runSeed, planTextUpdates, TEXT_FIELDS, SEED_KEYS, modeFromArgs } from '../scripts/seedHistory.js';
 
 const IMAGE_FIELDS = ['imageUrl', 'imagePublicId', 'imageAlt', 'imageCaption'];
 const silent = { log: () => {} };
@@ -64,10 +64,10 @@ const snapshot = () => rows.map((r) => ({ ...r }));
 const stripText = (r) => Object.fromEntries(Object.entries(r).filter(([k]) => !TEXT_FIELDS.includes(k)));
 
 describe('the rewritten seed text', () => {
-  test('there are exactly 15 entries and 11 of them were reworded; records and the Brazil placeholder are untouched', () => {
-    assert.equal(HISTORY_SEED.length, 15);
+  test('there are exactly 14 entries and 11 of them were reworded; the three records are untouched', () => {
+    assert.equal(HISTORY_SEED.length, 14);
     assert.equal(Object.keys(LEGACY_TEXT).length, 11);
-    for (const k of ['brazil-pending', 'record-pasadena', 'record-cameroon', 'record-decree']) assert.equal(LEGACY_TEXT[k], undefined, k);
+    for (const k of ['record-pasadena', 'record-cameroon', 'record-decree']) assert.equal(LEGACY_TEXT[k], undefined, k);
   });
   test('image fields in the seed are exactly what they were before the rewrite (alt text and caption unchanged, no URLs or ids)', () => {
     const images = Object.fromEntries(
@@ -84,7 +84,7 @@ describe('the rewritten seed text', () => {
       HISTORY_SEED.map((e) => `${e.key}|${e.section}|${e.order}`),
       ['intro|introduction|0', 'basil-miller|origins|10', 'basil-miller-writing|origins|20', 'smalldridge-couple|cameroon|10', 'churches-established|cameroon|20',
         'secondary-school|cameroon|30', 'jonathan-smalldridge|cameroon-leadership|10', 'ebai-superintendent|cameroon-leadership|20', 'fang-superintendent|cameroon-leadership|30',
-        'fred-johnson|international-leadership|10', 'expansion-countries|international-growth|10', 'brazil-pending|international-growth|20',
+        'fred-johnson|international-leadership|10', 'expansion-countries|international-growth|10',
         'record-pasadena|records|10', 'record-cameroon|records|20', 'record-decree|records|30'],
     );
   });
@@ -120,7 +120,7 @@ describe('update-text: planning', () => {
     assert.equal(plan.updates.length, 11);
     assert.deepEqual(plan.edited, []);
     assert.deepEqual(plan.missing, []);
-    assert.equal(plan.upToDate.length, 4);
+    assert.equal(plan.upToDate.length, 3);
     for (const u of plan.updates) assert.ok(Object.keys(u.set).every((f) => TEXT_FIELDS.includes(f)));
   });
   test('a text edited in the admin is left alone and reported', () => {
@@ -165,7 +165,7 @@ describe('update-text: applying it', () => {
       for (const f of TEXT_FIELDS) assert.equal(String(row[f] ?? ''), String(seedBy[row.key][f] ?? ''), `${row.key}.${f}`);
     });
     assert.match(out.join('\n'), /updated the text of 11 entries/);
-    assert.match(out.join('\n'), /Already on the current wording: 15/);
+    assert.match(out.join('\n'), /Already on the current wording: 14/);
   });
 
   test('it is idempotent: a second run changes nothing and issues no writes', async () => {
@@ -233,5 +233,79 @@ describe('the command-line entry point', () => {
     assert.equal(pkg.scripts['seed:history:check-text'], 'node src/scripts/seedHistory.js --check-text');
     assert.equal(pkg.scripts['seed:history:update-text'], 'node src/scripts/seedHistory.js --update-text');
     void execFileSync; // (no process is spawned: a real run needs a database)
+  });
+});
+
+describe('retired seed entries (Brazil placeholder)', () => {
+  // Rows already in a database: the 14 seed entries (published) plus the retired Brazil one,
+  // with an image on a normal entry to prove nothing else is written.
+  function withBrazil(status = 'published') {
+    rows = rows.map((r) => ({ ...r, status: 'published' }));
+    rows.push({ _id: 'brazil', key: 'brazil-pending', section: 'international-growth', entryType: 'pending', title: 'World Wide Mission Brazil', order: 20, status });
+  }
+  function fakeUpdateMany() {
+    const seen = [];
+    HistoryEvent.updateMany = async (filter, update) => {
+      seen.push({ filter, update });
+      let n = 0;
+      for (const r of rows) if (filter.key.$in.includes(r.key) && r.status === filter.status) { Object.assign(r, update.$set); n++; }
+      return { modifiedCount: n };
+    };
+    return seen;
+  }
+
+  test('the seed no longer contains it and records it as retired', () => {
+    assert.ok(!HISTORY_SEED.some((e) => e.key === 'brazil-pending'));
+    assert.ok(!SEED_KEYS.includes('brazil-pending'));
+    assert.deepEqual(RETIRED_SEED_KEYS, ['brazil-pending']);
+  });
+
+  test('--unpublish-retired sets only the retired entry to draft: nothing deleted, nothing else written', async () => {
+    withBrazil();
+    const seen = fakeUpdateMany();
+    const before = snapshot();
+    const out = [];
+    await runSeed({ mode: 'unpublish-retired', log: (l) => out.push(l) });
+    assert.equal(rows.length, before.length, 'nothing deleted or created');
+    assert.equal(seen.length, 1);
+    assert.deepEqual(seen[0].filter, { key: { $in: ['brazil-pending'] }, status: 'published' });
+    assert.deepEqual(seen[0].update, { $set: { status: 'draft' } });
+    rows.forEach((r, i) => {
+      if (r.key === 'brazil-pending') assert.equal(r.status, 'draft');
+      else assert.deepEqual(r, before[i], r.key); // every other entry, image fields included, is identical
+    });
+    assert.match(out.join('\n'), /set 1 retired entry \(brazil-pending\) back to draft; nothing was deleted/);
+  });
+
+  test('it is idempotent and a no-op when the entry is absent or already a draft', async () => {
+    withBrazil('draft');
+    fakeUpdateMany();
+    const before = snapshot();
+    await runSeed({ mode: 'unpublish-retired', ...silent });
+    assert.deepEqual(rows, before);
+    rows = rows.filter((r) => r.key !== 'brazil-pending');
+    await runSeed({ mode: 'unpublish-retired', ...silent });
+    assert.equal(rows.some((r) => r.key === 'brazil-pending'), false, 'never created');
+  });
+
+  test('--check warns when the retired entry is still published; --publish-seeded never republishes it', async () => {
+    withBrazil('published');
+    const out = [];
+    await runSeed({ mode: 'check', log: (l) => out.push(l) });
+    assert.match(out.join('\n'), /brazil-pending was removed from the seed but is still PUBLISHED/);
+    assert.match(out.join('\n'), /seed:history:unpublish-retired/);
+
+    const seen = fakeUpdateMany();
+    HistoryEvent.updateMany = async (filter, update) => { seen.push({ filter, update }); return { modifiedCount: 0 }; };
+    await runSeed({ mode: 'publish', ...silent });
+    assert.ok(!seen.at(-1).filter.key.$in.includes('brazil-pending'));
+  });
+
+  test('command-line option and npm script exist', async () => {
+    assert.equal(modeFromArgs(['--unpublish-retired']), 'unpublish-retired');
+    assert.throws(() => modeFromArgs(['--unpublish-retired', '--draft']), /only one/);
+    const dir = path.dirname(fileURLToPath(import.meta.url));
+    const pkg = JSON.parse((await import('node:fs')).readFileSync(path.join(dir, '../../package.json'), 'utf8'));
+    assert.equal(pkg.scripts['seed:history:unpublish-retired'], 'node src/scripts/seedHistory.js --unpublish-retired');
   });
 });
