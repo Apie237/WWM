@@ -16,7 +16,7 @@ import { uploadAvailability, validateImageFile, formatMb } from '../lib/imageUpl
 let vite
 let mod
 before(async () => {
-  vite = await createServer({ configFile: false, plugins: [react()], appType: 'custom', server: { middlewareMode: true }, logLevel: 'silent', optimizeDeps: { noDiscovery: true } })
+  vite = await createServer({ configFile: false, plugins: [react()], appType: 'custom', assetsInclude: ['**/*.55'], server: { middlewareMode: true }, logLevel: 'silent', optimizeDeps: { noDiscovery: true } })
   mod = {
     Feature: (await vite.ssrLoadModule('/src/components/history/HistoryFeature.jsx')).default,
     Timeline: (await vite.ssrLoadModule('/src/components/history/LeadershipTimeline.jsx')).default,
@@ -215,12 +215,38 @@ test('the History feature source code has no "Source:" label and never reads ent
   }
 })
 
-test('the records notice no longer attributes the records to the founder but still says they are not current', () => {
+test('the records section has no explanatory notice box and the page has no "information to come" placeholder', () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-  const code = fs.readFileSync(path.join(root, 'pages/History.jsx'), 'utf8')
-  assert.ok(!/supplied by the founder/i.test(code))
-  assert.ok(code.includes('These details are historical.'))
-  assert.ok(code.includes('not presented as current addresses or as a statement of current legal status unless separately confirmed'))
+  const page = fs.readFileSync(path.join(root, 'pages/History.jsx'), 'utf8')
+  const records = fs.readFileSync(path.join(root, 'components/history/HistoricalRecords.jsx'), 'utf8')
+  for (const phrase of ['supplied by the founder', 'These details are historical', 'RECORDS_NOTICE', 'Information to come', 'border-dashed']) {
+    assert.ok(!page.includes(phrase), `History.jsx still contains: ${phrase}`)
+  }
+  assert.ok(!/notice/i.test(records))
+  const out = html(h(mod.Records, { entries: [entry({ section: 'records', title: 'World-Wide Missions, Inc. — historical address', description: '1593 East Colorado Boulevard' })] }))
+  assert.ok(!/These details|not presented as current/.test(out))
+  assert.ok(out.includes('historical address') && out.includes('1593 East Colorado Boulevard'), 'the records themselves are intact')
+})
+
+test('pending ("information to come") entries are never listed on the public page, whatever the database holds', () => {
+  const items = [
+    { _id: '1', section: 'international-growth', entryType: 'event', title: 'Expansion' },
+    { _id: '2', section: 'international-growth', entryType: 'pending', title: 'Placeholder' },
+    { _id: '3', section: 'records', entryType: 'record', title: 'Record' },
+  ]
+  assert.deepEqual(mod.history.publicHistoryItems(items).map((i) => i._id), ['1', '3'])
+  assert.deepEqual(mod.history.publicHistoryItems(undefined), [])
+})
+
+test('the footer has no Contact placeholder column; brand + the three link groups remain', async () => {
+  const { StaticRouter } = await import('react-router-dom')
+  const Footer = (await vite.ssrLoadModule('/src/components/layout/Footer.jsx')).default
+  const out = html(h(StaticRouter, { location: '/' }, h(Footer)))
+  for (const phrase of ['Not yet published', 'Contact details will be published', 'once confirmed']) assert.ok(!out.includes(phrase), phrase)
+  assert.ok(!/>Contact<\/h3>/.test(out), 'no Contact heading')
+  for (const heading of ['Quick Links', 'Resources', 'Get Involved']) assert.ok(out.includes(heading), heading)
+  assert.ok(out.includes('href="/resources#contact"'), 'the Contact link to the form stays')
+  assert.match(out, /lg:grid-cols-4/)
 })
 
 test('no Brazil text is hardcoded anywhere in the public History code', () => {

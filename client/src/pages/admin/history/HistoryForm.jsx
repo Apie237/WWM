@@ -96,7 +96,7 @@ export default function HistoryForm() {
           ))}
         </select>
       </FormField>
-      <FormField label="Entry type" htmlFor="entryType" hint="Records show in the historical-records panel; “pending” shows an ‘information to come’ placeholder.">
+      <FormField label="Entry type" htmlFor="entryType" hint="Records show in the historical-records panel; “pending” entries are kept for the editors and are not shown on the public page.">
         <select id="entryType" className={inputClasses} value={form.entryType} onChange={(e) => update('entryType', e.target.value)}>
           {Object.entries(HISTORY_ENTRY_TYPE_LABELS).map(([v, l]) => (
             <option key={v} value={v}>{l}</option>

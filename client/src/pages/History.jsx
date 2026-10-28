@@ -12,6 +12,7 @@ import Reveal from '../components/history/Reveal.jsx'
 import { getHistory } from '../services/api.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 import { toParagraphs } from '../lib/format.js'
+import { publicHistoryItems } from '../lib/history.js'
 
 const NAV = [
   { id: 'origins', label: 'Origins' },
@@ -22,8 +23,6 @@ const NAV = [
   { id: 'records', label: 'Historical records' },
 ]
 
-const RECORDS_NOTICE =
-  'These details are historical. They are not presented as current addresses or as a statement of current legal status unless separately confirmed.'
 const LEADERSHIP_NOTE =
   'Dates and the order of succession are shown only as supplied. A complete list of appointments has not been published.'
 
@@ -37,7 +36,7 @@ export default function History() {
   useEffect(() => {
     let cancelled = false
     getHistory({ limit: 200 })
-      .then(({ data }) => !cancelled && setState({ status: 'ready', items: data }))
+      .then(({ data }) => !cancelled && setState({ status: 'ready', items: publicHistoryItems(data) }))
       .catch(() => !cancelled && setState({ status: 'error', items: [] }))
     return () => {
       cancelled = true
@@ -162,22 +161,14 @@ export default function History() {
             <SectionBand tone="white" id="international-growth" className="scroll-mt-40">
               <Reveal><SectionHeader eyebrow="Beyond Cameroon" title="International growth" /></Reveal>
               <div className="mt-10 grid gap-6 md:grid-cols-2">
-                {by['international-growth'].map((e) =>
-                  e.entryType === 'pending' ? (
-                    <Reveal as="article" key={e._id} className="border border-dashed border-wwm-neutral-300 bg-wwm-neutral-100 p-6">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-wwm-neutral-600">Information to come</p>
-                      <h3 className="mt-2 text-lg font-bold text-wwm-navy">{e.title}</h3>
-                      <p className="mt-3 text-base leading-relaxed text-wwm-neutral-600">{e.description}</p>
-                    </Reveal>
-                  ) : (
-                    <Reveal as="article" key={e._id} className="border-l-2 border-wwm-gold bg-wwm-bg p-6">
-                      <EntryPhoto entry={e} />
-                      {e.dateLabel && <p className="text-xs font-semibold uppercase tracking-[0.2em] text-wwm-gold">{e.dateLabel}</p>}
-                      <h3 className="mt-1 text-lg font-bold text-wwm-navy">{e.title}</h3>
-                      <p className="mt-3 text-base leading-relaxed text-wwm-neutral-900">{e.description}</p>
-                    </Reveal>
-                  ),
-                )}
+                {by['international-growth'].map((e) => (
+                  <Reveal as="article" key={e._id} className="border-l-2 border-wwm-gold bg-wwm-bg p-6">
+                    <EntryPhoto entry={e} />
+                    {e.dateLabel && <p className="text-xs font-semibold uppercase tracking-[0.2em] text-wwm-gold">{e.dateLabel}</p>}
+                    <h3 className="mt-1 text-lg font-bold text-wwm-navy">{e.title}</h3>
+                    <p className="mt-3 text-base leading-relaxed text-wwm-neutral-900">{e.description}</p>
+                  </Reveal>
+                ))}
               </div>
             </SectionBand>
           )}
@@ -186,7 +177,7 @@ export default function History() {
             <SectionBand tone="cream" id="records" className="scroll-mt-40">
               <Reveal><SectionHeader eyebrow="Archive" title="Historical records" /></Reveal>
               <div className="mt-8">
-                <HistoricalRecords entries={by.records} notice={RECORDS_NOTICE} />
+                <HistoricalRecords entries={by.records} />
               </div>
             </SectionBand>
           )}

@@ -35,3 +35,9 @@ export function placeholderLabel(entry) {
   const subject = entry.imageCaption || (people.length === 1 ? people[0].displayName : entry.title)
   return `Photograph of ${subject} coming soon`
 }
+
+// Entries that are only "information to come" placeholders are never shown to
+// visitors: the public page lists real, published history only.
+export function publicHistoryItems(items) {
+  return (items || []).filter((item) => item.entryType !== 'pending')
+}

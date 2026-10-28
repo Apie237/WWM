@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { Mail, MapPin, Phone } from 'lucide-react'
 import Container from '../ui/Container.jsx'
 import Logo from '../ui/Logo.jsx'
 import { FacebookIcon, InstagramIcon, TwitterIcon, YoutubeIcon } from '../ui/SocialIcons.jsx'
@@ -12,17 +11,17 @@ const SOCIAL_LINKS = [
   { label: 'Instagram', href: 'https://instagram.com', icon: InstagramIcon },
 ]
 
-// Institutional footer per docs/DESIGN_SPEC.md §12. Contact details are
-// intentionally not hardcoded — no current headquarters address/phone/email
-// has been supplied and verified (docs/PROJECT_SPEC.md §14 / Phase 4
-// instructions: "Do not invent contact information"). This block is wired to
-// show real data once a verified source exists.
+// Institutional footer per docs/DESIGN_SPEC.md §12. It carries no contact
+// column: no verified headquarters address/phone/email has been supplied
+// (docs/PROJECT_SPEC.md §14: "Do not invent contact information"), and a
+// placeholder is worse than nothing. Add a column here once verified details
+// exist; the Contact link above leads to the contact form.
 export default function Footer() {
   const year = new Date().getFullYear()
 
   return (
     <footer className="bg-wwm-navy text-wwm-neutral-100">
-      <Container className="grid grid-cols-1 gap-10 py-14 sm:grid-cols-2 lg:grid-cols-5 lg:gap-8">
+      <Container className="grid grid-cols-1 gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
         <div className="lg:col-span-1">
           <Logo textClassName="text-wwm-white" />
           <p className="mt-4 text-sm leading-relaxed text-wwm-neutral-100">
@@ -44,24 +43,6 @@ export default function Footer() {
             </ul>
           </div>
         ))}
-
-        <div>
-          <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-wwm-gold-light">Contact</h3>
-          <ul className="mt-4 space-y-2.5 text-sm text-wwm-neutral-100">
-            <li className="flex items-start gap-2">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-wwm-gold" aria-hidden="true" />
-              <span>Contact details will be published here once confirmed.</span>
-            </li>
-            <li className="flex items-center gap-2 opacity-60">
-              <Phone className="h-4 w-4 shrink-0 text-wwm-gold" aria-hidden="true" />
-              <span>Not yet published</span>
-            </li>
-            <li className="flex items-center gap-2 opacity-60">
-              <Mail className="h-4 w-4 shrink-0 text-wwm-gold" aria-hidden="true" />
-              <span>Not yet published</span>
-            </li>
-          </ul>
-        </div>
       </Container>
 
       <div className="border-t border-white/10">
